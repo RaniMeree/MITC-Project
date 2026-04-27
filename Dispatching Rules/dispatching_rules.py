@@ -478,6 +478,40 @@ def simulate(jobs, meta, rule, wc_units=None, wc_workers=None, worker_info=None,
         mm   = int(round((tod - hh) * 60))
         return f"Day {day}  {hh:02d}:{mm:02d}  ({hours:.2f}h)"
 
+    def _status():
+        """Print a snapshot of machine queues, workers, and operation progress."""
+        _log(f"\n  {'='*68}")
+        _log(f"  STATUS  ({done}/{total_ops} ops done)")
+        _log(f"  {'='*68}")
+
+        _log(f"  MACHINE QUEUES:")
+        _log(f"    {'Machine':<14}  {'Free At':<28}  {'Queue':>5}  Waiting Operations")
+        _log(f"    {'-'*14}  {'-'*28}  {'-'*5}  {'-'*35}")
+        for m in sorted(mach_free, key=str):
+            q      = mach_queue[m]
+            free_t = min(mach_free[m])
+            ops_str = "  ".join(f"Op#{e['op']['op_num']}(Ord {e['oid']})" for e in q) if q else "—"
+            _log(f"    {str(m):<14}  {_h(free_t):<28}  {len(q):>5}  {ops_str}")
+
+        all_w = sorted(set(worker_free) | set(worker_info or {}))
+        if all_w:
+            _log(f"  WORKERS:")
+            _log(f"    {'Worker':<10}  {'Free At'}")
+            _log(f"    {'-'*10}  {'-'*28}")
+            for w in all_w:
+                _log(f"    {str(w):<10}  {_h(worker_free.get(w, 0.0))}")
+
+        _log(f"  OPERATIONS:")
+        _log(f"    {'Order':<12}  {'Progress':<10}  Next Op")
+        _log(f"    {'-'*12}  {'-'*10}  {'-'*35}")
+        for oid in sorted(jobs):
+            idx = next_op_idx[oid]
+            tot = len(jobs[oid])
+            prog = f"{idx}/{tot}"
+            detail = f"Op#{jobs[oid][idx]['op_num']} → Machine {jobs[oid][idx]['machine']}" if idx < tot else "COMPLETE"
+            _log(f"    {str(oid):<12}  {prog:<10}  {detail}")
+        _log(f"  {'='*68}")
+
     # ── initialise state ─────────────────────────────────────────────────────
     next_op_idx = {oid: 0 for oid in jobs}
     job_done_at = {oid: meta[oid]["release_h"] for oid in jobs}
@@ -529,24 +563,8 @@ def simulate(jobs, meta, rule, wc_units=None, wc_workers=None, worker_info=None,
                 "prio":     meta[oid]["priority"],
                 "rel":      meta[oid]["release_h"],
             })
-            if VERBOSE:
-                _log(f"    → Order {oid}  Op#{op['op_num']}  added to machine {op['machine']} queue"
-                     f"  |  ready at {_h(ready_at)}  |  duration {op['duration']:.2f}h")
-
-    if VERBOSE:
-        _log(f"\n  INITIAL QUEUE LOAD  (first operation of every order):")
     for oid in jobs:
         enqueue(oid)
-
-    if VERBOSE:
-        _log(f"\n  MACHINE QUEUES after initial load:")
-        for m in sorted(mach_queue, key=str):
-            q = mach_queue[m]
-            if q:
-                items = "  |  ".join(f"Order {e['oid']} Op#{e['op']['op_num']}" for e in q)
-                _log(f"    machine {m}: [{items}]")
-            else:
-                _log(f"    machine {m}: [empty]")
 
     schedule       = []
     completion     = {}
@@ -554,53 +572,22 @@ def simulate(jobs, meta, rule, wc_units=None, wc_workers=None, worker_info=None,
     done           = 0
     step           = 0
 
-    if VERBOSE:
-        _log(f"\n{'='*70}")
-        _log(f"  SCHEDULING LOOP  ({total_ops} operations to schedule)")
-        _log(f"{'='*70}")
-
     # ── main simulation loop ──────────────────────────────────────────────────
+    if VERBOSE:
+        _status()
     while done < total_ops:
         step += 1
-        if VERBOSE:
-            _log(f"\n┌─ Step {step}  ({done}/{total_ops} ops done) {'─'*45}")
-
-            # snapshot: current machine free-times
-            _log(f"│  Machine status (next free time):")
-            for m in sorted(mach_free, key=str):
-                free_t = min(mach_free[m])
-                q_len  = len(mach_queue[m])
-                _log(f"│    machine {m:<12} free at {_h(free_t):>30}  |  {q_len} op(s) waiting")
-
-            # snapshot: current worker free-times
-            if worker_free:
-                _log(f"│  Worker status (next free time):")
-                for w in sorted(worker_free):
-                    _log(f"│    worker {w}  free at {_h(worker_free[w])}")
-
-            # snapshot: job progress
-            _log(f"│  Job progress:")
-            for oid in sorted(jobs):
-                idx  = next_op_idx[oid]
-                tot  = len(jobs[oid])
-                done_str = "COMPLETE" if idx == tot else f"op {idx}/{tot} scheduled"
-                _log(f"│    order {oid:<8}  {done_str}  |  last-op-done at {_h(job_done_at[oid])}")
 
         # ── Find the machine whose next possible start time is earliest ──────
         best_time = float("inf")
         best_m    = None
         best_slot = None
 
-        if VERBOSE:
-            _log(f"│  Evaluating which machine to schedule next:")
-
         for m, q in mach_queue.items():
             if not q:
                 continue
             eligible = wc_workers.get(m, [])
             if m in wc_workers and not eligible:
-                if VERBOSE:
-                    _log(f"│    machine {m}: SKIPPED — no available workers")
                 continue
             if eligible:
                 worker_avail = min(
@@ -617,12 +604,6 @@ def simulate(jobs, meta, rule, wc_units=None, wc_workers=None, worker_info=None,
             earliest_ready = min(e["ready_at"] for e in q)
             slot_idx = min(range(len(mach_free[m])), key=lambda i: mach_free[m][i])
             t = max(mach_free[m][slot_idx], earliest_ready, worker_avail)
-            if VERBOSE:
-                _log(f"│    machine {m}:")
-                _log(f"│      machine free slot  = {_h(mach_free[m][slot_idx])}")
-                _log(f"│      earliest job ready = {_h(earliest_ready)}")
-                _log(f"│      earliest worker    = {_h(worker_avail)}")
-                _log(f"│      → can start at     = {_h(t)}   (max of the three above)")
             if t < best_time:
                 best_time = t
                 best_m    = m
@@ -630,31 +611,16 @@ def simulate(jobs, meta, rule, wc_units=None, wc_workers=None, worker_info=None,
 
         if best_m is None:
             if VERBOSE:
-                _log(f"│  No machine can be scheduled. Stopping.")
+                _log(f"\n  No more operations can be scheduled.  Stopping.")
             break
-
-        if VERBOSE:
-            _log(f"│  ✔ Selected machine {best_m}  (earliest possible start: {_h(best_time)})")
 
         t = best_time
         q = mach_queue[best_m]
 
         # ── Pick one operation from the ready queue using the dispatching rule ─
         ready_now = [e for e in q if e["ready_at"] <= t + 1e-9]
-
-        if VERBOSE:
-            _log(f"│  Operations ready at machine {best_m} by {_h(t)}:")
-            _log(f"│    {'Order':<10} {'Op':>4}  {'Priority':>8}  {'Duration':>9}  {'Ready at':>25}  {'Due at':>25}")
-            _log(f"│    {'-'*10}  {'-'*4}  {'-'*8}  {'-'*9}  {'-'*25}  {'-'*25}")
-            for e in ready_now:
-                _log(f"│    {str(e['oid']):<10} {e['op']['op_num']:>4}  {e['prio']:>8.0f}  "
-                     f"{e['op']['duration']:>8.2f}h  {_h(e['ready_at']):>25}  {_h(e['due']):>25}")
-
         chosen = pick_next(ready_now, t, rule)
         q.remove(chosen)
-
-        if VERBOSE:
-            _log(f"│  Rule [{rule}] chose: Order {chosen['oid']}  Op#{chosen['op']['op_num']}")
 
         oid = chosen["oid"]
         op  = chosen["op"]
@@ -669,22 +635,11 @@ def simulate(jobs, meta, rule, wc_units=None, wc_workers=None, worker_info=None,
                 se       = info.get("shift_end",   24.0)
                 abs_days = day_absences.get(w, set()) if day_absences else set()
                 return next_available_time(free_at, ss, se, abs_days)
-            if VERBOSE:
-                _log(f"│  Workers qualified for machine {best_m}:")
-                for w in eligible:
-                    _log(f"│    worker {w}  currently free: {_h(worker_free.get(w,0.0)):>30}  "
-                         f"shift {worker_info.get(w,{}).get('shift_start',0):.0f}:00–"
-                         f"{worker_info.get(w,{}).get('shift_end',24):.0f}:00  "
-                         f"→ earliest available: {_h(worker_earliest(w))}")
             best_worker       = min(eligible, key=worker_earliest)
             worker_start_free = worker_earliest(best_worker)
-            if VERBOSE:
-                _log(f"│  ✔ Assigned worker {best_worker}  (available at {_h(worker_start_free)})")
         else:
             best_worker = None
             worker_start_free = 0.0
-            if VERBOSE:
-                _log(f"│  No worker constraint for machine {best_m}")
 
         # ── Compute start/end times ──────────────────────────────────────────
         tentative = max(chosen["ready_at"], mach_free[best_m][best_slot])
@@ -698,12 +653,8 @@ def simulate(jobs, meta, rule, wc_units=None, wc_workers=None, worker_info=None,
         end   = start + op["duration"]
 
         if VERBOSE:
-            _log(f"│  Time calculation:")
-            _log(f"│    tentative start (machine+job ready, shift-snapped) = {_h(tentative)}")
-            _log(f"│    worker available at                                 = {_h(worker_start_free)}")
-            _log(f"│    → ACTUAL START = {_h(start)}")
-            _log(f"│      duration     = {op['duration']:.2f}h")
-            _log(f"│    → ACTUAL END   = {_h(end)}")
+            w_str = str(best_worker) if best_worker is not None else "none"
+            _log(f"\n  START  │  Op #{op['op_num']:>3}  │  Order {oid}  │  Machine {best_m}  │  Worker {w_str}  │  {_h(start)}")
 
         # ── Commit the decision ──────────────────────────────────────────────
         mach_free[best_m][best_slot] = end
@@ -722,26 +673,21 @@ def simulate(jobs, meta, rule, wc_units=None, wc_workers=None, worker_info=None,
         })
         done += 1
 
+        if VERBOSE:
+            w_str = str(best_worker) if best_worker is not None else "none"
+            _log(f"  END    │  Op #{op['op_num']:>3}  │  Order {oid}  │  Machine {best_m}  │  Worker {w_str}  │  {_h(end)}")
+
         if next_op_idx[oid] == len(jobs[oid]):
             completion[oid] = end
             if VERBOSE:
-                due       = meta[oid]["due_h"]
-                status    = "ON TIME" if end <= due else f"LATE by {end-due:.2f}h"
-                _log(f"│")
-                _log(f"│  ★ ORDER {oid} COMPLETE")
-                _log(f"│    finished at {_h(end)}  |  due {_h(due)}  |  {status}")
+                due    = meta[oid]["due_h"]
+                status = "ON TIME" if end <= due else f"LATE by {end - due:.2f}h"
+                _log(f"  ★ ORDER {oid} COMPLETE  —  {status}")
         else:
             enqueue(oid)
-            if VERBOSE:
-                nxt = jobs[oid][next_op_idx[oid]]
-                _log(f"│  Next op for order {oid}: Op#{nxt['op_num']} → machine {nxt['machine']} added to queue")
 
         if VERBOSE:
-            _log(f"│  State after step {step}:")
-            _log(f"│    machine {best_m}  slot {best_slot}  now free at {_h(end)}")
-            if best_worker:
-                _log(f"│    worker  {best_worker}                  now free at {_h(end)}")
-            _log(f"└{'─'*69}")
+            _status()
 
     # ── compute Total Weighted Tardiness ─────────────────────────────────────
     if VERBOSE:
