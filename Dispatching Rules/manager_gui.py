@@ -34,7 +34,7 @@ import matplotlib.patches as mpatches
 import dispatching_rules as dr
 
 _HERE       = os.path.dirname(__file__)
-_DATA_DIR   = os.path.join(_HERE, "..", "Data")
+_DATA_DIR   = os.path.join(_HERE, "Data")
 dr.DATA_DIR = _DATA_DIR          # same override as run_demo_dispatching.py
 
 # ── current work-week (Mon – Fri) ────────────────────────────────────────────

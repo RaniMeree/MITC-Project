@@ -26,9 +26,9 @@ import dispatching_rules as dr
 
 _HERE = os.path.dirname(__file__)
 _DEMO_CANDIDATES = [
+    os.path.join(_HERE, "Data"),
     os.path.join(_HERE, "..", "Data"),
     os.path.join(_HERE, "Data", "Data", "Demo", "db_export"),
-    os.path.join(_HERE, "..", "Data", "Data", "Demo", "db_export"),
 ]
 
 DEMO_DIR = next((p for p in _DEMO_CANDIDATES if os.path.exists(p)), _DEMO_CANDIDATES[0])

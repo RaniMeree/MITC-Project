@@ -10,7 +10,7 @@ import numpy as np
 
 DATA_DIR = os.path.join(
     os.path.dirname(__file__),
-    "..", "Data"
+    "Data"
 )
 
 DEFAULT_DURATION = 8.0   # fallback duration in hours if data is missing
