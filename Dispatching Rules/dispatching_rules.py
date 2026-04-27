@@ -470,47 +470,22 @@ def simulate(jobs, meta, rule, wc_units=None, wc_workers=None, worker_info=None,
         if _log_fh:
             print(*args, file=_log_fh, flush=True, **kwargs)
 
-    def _h(hours):
-        """Format float hours as  'Day N  HH:MM'  for readability."""
-        day  = int(hours // 24) + 1
-        tod  = hours - (day - 1) * 24
-        hh   = int(tod)
-        mm   = int(round((tod - hh) * 60))
-        return f"Day {day}  {hh:02d}:{mm:02d}  ({hours:.2f}h)"
-
     def _status():
-        """Print a snapshot of machine queues, workers, and operation progress."""
-        _log(f"\n  {'='*68}")
-        _log(f"  STATUS  ({done}/{total_ops} ops done)")
-        _log(f"  {'='*68}")
+        """Dump all simulation state as raw variable values."""
+        _log(f"\n--- STATUS  done={done}  total_ops={total_ops} ---")
 
-        _log(f"  MACHINE QUEUES:")
-        _log(f"    {'Machine':<14}  {'Free At':<28}  {'Queue':>5}  Waiting Operations")
-        _log(f"    {'-'*14}  {'-'*28}  {'-'*5}  {'-'*35}")
-        for m in sorted(mach_free, key=str):
-            q      = mach_queue[m]
-            free_t = min(mach_free[m])
-            ops_str = "  ".join(f"Op#{e['op']['op_num']}(Ord {e['oid']})" for e in q) if q else "—"
-            _log(f"    {str(m):<14}  {_h(free_t):<28}  {len(q):>5}  {ops_str}")
+        _log(f"mach_free = {dict((m, mach_free[m]) for m in sorted(mach_free, key=str))}")
 
-        all_w = sorted(set(worker_free) | set(worker_info or {}))
-        if all_w:
-            _log(f"  WORKERS:")
-            _log(f"    {'Worker':<10}  {'Free At'}")
-            _log(f"    {'-'*10}  {'-'*28}")
-            for w in all_w:
-                _log(f"    {str(w):<10}  {_h(worker_free.get(w, 0.0))}")
+        mq_repr = {}
+        for m in sorted(mach_queue, key=str):
+            mq_repr[m] = [(e['oid'], e['op']['op_num'], e['ready_at']) for e in mach_queue[m]]
+        _log(f"mach_queue = {mq_repr}  # (order_id, op_num, ready_at)")
 
-        _log(f"  OPERATIONS:")
-        _log(f"    {'Order':<12}  {'Progress':<10}  Next Op")
-        _log(f"    {'-'*12}  {'-'*10}  {'-'*35}")
-        for oid in sorted(jobs):
-            idx = next_op_idx[oid]
-            tot = len(jobs[oid])
-            prog = f"{idx}/{tot}"
-            detail = f"Op#{jobs[oid][idx]['op_num']} → Machine {jobs[oid][idx]['machine']}" if idx < tot else "COMPLETE"
-            _log(f"    {str(oid):<12}  {prog:<10}  {detail}")
-        _log(f"  {'='*68}")
+        _log(f"worker_free = {dict(sorted(worker_free.items()))}")
+
+        _log(f"next_op_idx = {dict(sorted(next_op_idx.items()))}")
+        _log(f"job_done_at = {dict(sorted(job_done_at.items()))}")
+        _log(f"--- END STATUS ---")
 
     # ── initialise state ─────────────────────────────────────────────────────
     next_op_idx = {oid: 0 for oid in jobs}
@@ -529,25 +504,11 @@ def simulate(jobs, meta, rule, wc_units=None, wc_workers=None, worker_info=None,
                 mach_queue[m] = []
 
     if VERBOSE:
-        _log(f"\n{'='*70}")
-        _log(f"  SIMULATION START  —  Rule: {rule}")
-        _log(f"{'='*70}")
-        _log(f"\n  ORDERS ({len(jobs)} total):")
-        _log(f"  {'Order':<10} {'Priority':>8}  {'Release':>22}  {'Due':>22}  {'Ops':>4}")
-        _log(f"  {'-'*10}  {'-'*8}  {'-'*22}  {'-'*22}  {'-'*4}")
+        _log(f"\n=== SIMULATION START  rule={rule} ===")
+        _log(f"jobs = {list(jobs.keys())}  # order IDs")
         for oid in sorted(jobs):
-            m_info = meta[oid]
-            _log(f"  {str(oid):<10} {m_info['priority']:>8.0f}  {_h(m_info['release_h']):>22}  {_h(m_info['due_h']):>22}  {len(jobs[oid]):>4}")
-
-        _log(f"\n  MACHINES ({len(mach_free)} total):")
-        _log(f"  {'Machine':<12} {'Slots':>5}  {'Qualified Workers'}")
-        _log(f"  {'-'*12}  {'-'*5}  {'-'*40}")
-        for m in sorted(mach_free, key=str):
-            workers = wc_workers.get(m, [])
-            slots   = len(mach_free[m])
-            w_str   = ", ".join(str(w) for w in workers) if workers else "(no constraint)"
-            _log(f"  {str(m):<12}  {slots:>5}  {w_str}")
-        _log(f"\n{'='*70}")
+            _log(f"  jobs[{oid}] = {[(op['op_num'], op['machine'], op['duration']) for op in jobs[oid]]}  # (op_num, machine, duration_h)")
+        _log(f"meta = {dict(sorted(meta.items()))}")
 
     def enqueue(oid):
         """Add the next unscheduled operation of a job to its machine queue."""
@@ -611,7 +572,7 @@ def simulate(jobs, meta, rule, wc_units=None, wc_workers=None, worker_info=None,
 
         if best_m is None:
             if VERBOSE:
-                _log(f"\n  No more operations can be scheduled.  Stopping.")
+                _log(f"\n--- NO MACHINE SCHEDULABLE  stopping ---")
             break
 
         t = best_time
@@ -653,8 +614,7 @@ def simulate(jobs, meta, rule, wc_units=None, wc_workers=None, worker_info=None,
         end   = start + op["duration"]
 
         if VERBOSE:
-            w_str = str(best_worker) if best_worker is not None else "none"
-            _log(f"\n  START  │  Op #{op['op_num']:>3}  │  Order {oid}  │  Machine {best_m}  │  Worker {w_str}  │  {_h(start)}")
+            _log(f"\n--- START  order_id={oid}  op_num={op['op_num']}  machine={best_m}  worker={best_worker}  start={start}  duration={op['duration']} ---")
 
         # ── Commit the decision ──────────────────────────────────────────────
         mach_free[best_m][best_slot] = end
@@ -674,15 +634,13 @@ def simulate(jobs, meta, rule, wc_units=None, wc_workers=None, worker_info=None,
         done += 1
 
         if VERBOSE:
-            w_str = str(best_worker) if best_worker is not None else "none"
-            _log(f"  END    │  Op #{op['op_num']:>3}  │  Order {oid}  │  Machine {best_m}  │  Worker {w_str}  │  {_h(end)}")
+            _log(f"--- END    order_id={oid}  op_num={op['op_num']}  machine={best_m}  worker={best_worker}  end={end} ---")
 
         if next_op_idx[oid] == len(jobs[oid]):
             completion[oid] = end
             if VERBOSE:
-                due    = meta[oid]["due_h"]
-                status = "ON TIME" if end <= due else f"LATE by {end - due:.2f}h"
-                _log(f"  ★ ORDER {oid} COMPLETE  —  {status}")
+                due = meta[oid]["due_h"]
+                _log(f"--- ORDER COMPLETE  order_id={oid}  end={end}  due={due}  tardiness={max(0.0, end-due)} ---")
         else:
             enqueue(oid)
 
@@ -690,12 +648,6 @@ def simulate(jobs, meta, rule, wc_units=None, wc_workers=None, worker_info=None,
             _status()
 
     # ── compute Total Weighted Tardiness ─────────────────────────────────────
-    if VERBOSE:
-        _log(f"\n{'='*70}")
-        _log(f"  RESULTS  —  Rule: {rule}")
-        _log(f"{'='*70}")
-        _log(f"  {'Order':<10} {'Finished':>25}  {'Due':>25}  {'Tardiness':>10}  {'Weight':>6}  {'Contrib':>10}  Status")
-        _log(f"  {'-'*10}  {'-'*25}  {'-'*25}  {'-'*10}  {'-'*6}  {'-'*10}  {'-'*9}")
     twt = 0.0
     for oid, ct in completion.items():
         due       = meta[oid]["due_h"]
@@ -704,15 +656,12 @@ def simulate(jobs, meta, rule, wc_units=None, wc_workers=None, worker_info=None,
         tardiness = max(0.0, ct - due)
         contrib   = weight * tardiness
         twt      += contrib
-        if VERBOSE:
-            status = f"LATE +{tardiness:.2f}h" if tardiness > 0 else "ON TIME"
-            _log(f"  {str(oid):<10}  {_h(ct):>25}  {_h(due):>25}  {tardiness:>9.2f}h  {weight:>6.1f}  {contrib:>10.2f}  {status}")
     if VERBOSE:
-        _log(f"  {'─'*70}")
-        _log(f"  Total Weighted Tardiness (TWT) = {twt:.2f}h")
-        _log(f"  (TWT = sum of  weight × tardiness  for each late order)")
-        _log(f"  (weight = 10 - priority,  e.g. priority 1 → weight 9 = most penalised)")
-        _log(f"\n{'='*70}\n")
+        _log(f"\n=== RESULTS  rule={rule}  TWT={twt} ===")
+        _log(f"completion = {dict(sorted(completion.items()))}  # order_id -> finish_time_h")
+        for oid, ct in sorted(completion.items()):
+            due = meta[oid]["due_h"]
+            _log(f"  order_id={oid}  finish={ct}  due={due}  tardiness={max(0.0, ct-due)}")
         _log_fh.close()
 
     return schedule, twt, completion
