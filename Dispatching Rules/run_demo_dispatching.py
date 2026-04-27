@@ -22,12 +22,11 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
-
-# ── point to the demo data folder ────────────────────────────────────────────
 import dispatching_rules as dr
 
 _HERE = os.path.dirname(__file__)
 _DEMO_CANDIDATES = [
+    os.path.join(_HERE, "..", "Data"),
     os.path.join(_HERE, "Data", "Data", "Demo", "db_export"),
     os.path.join(_HERE, "..", "Data", "Data", "Demo", "db_export"),
 ]
@@ -44,10 +43,7 @@ if not os.path.exists(os.path.join(DEMO_DIR, "ManufacturingOrders.tsv")):
 dr.DATA_DIR = DEMO_DIR
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# RUN
-# ─────────────────────────────────────────────────────────────────────────────
-
+# RUN the solution
 if __name__ == "__main__":
 
     import sys
@@ -72,10 +68,43 @@ if __name__ == "__main__":
     print("  DEMO DISPATCHING — 3 orders, 5 machines, 18 operations")
     print("=" * 65)
 
-    # load the demo data
-    jobs, meta, wc_df, wc_avail, wc_units = dr.load_and_preprocess()
+    # ── ask for absent workers then load everything ───────────────────────────
+    print()
+    raw = input("Enter absent worker IDs (comma-separated), or press Enter to skip: ").strip()
+    absent_workers = set()
+    if raw:
+        for token in raw.split(","):
+            t = token.strip()
+            if t:
+                absent_workers.add(t)
+
+    if absent_workers:
+        print(f"  Absent workers : {sorted(absent_workers)}")
+    else:
+        print("  No absent workers.")
+
+    # load data — competences are built from WorkerCompetences.csv with absent excluded
+    jobs, meta, wc_df, wc_avail, wc_units, wc_workers, worker_info = dr.load_and_preprocess(absent_workers)
 
     wc_names = dict(zip(wc_df["Id"], wc_df["Description"]))
+    TODAY = pd.Timestamp.now().normalize()  # today at midnight — Day 1 of the schedule
+
+    # show which machines are available / blocked
+    print()
+    print("  Worker availability per machine (competence 2 required):")
+    for m_id, mname in sorted(wc_names.items()):
+        workers = wc_workers.get(m_id, [])
+        if m_id in wc_workers:
+            if workers:
+                shifts = ", ".join(
+                    f"W{w} {worker_info[w]['shift_start']:.0f}:00-{worker_info[w]['shift_end']:.0f}:00"
+                    for w in workers if w in worker_info
+                )
+                print(f"    WC {m_id} {mname:<8}  workers: {', '.join(workers)}  ({shifts})")
+            else:
+                print(f"    WC {m_id} {mname:<8}  *** NO WORKER AVAILABLE — operations will be SKIPPED ***")
+        else:
+            print(f"    WC {m_id} {mname:<8}  (no worker constraint)")
 
     print()
     print("  Orders loaded:")
@@ -83,9 +112,11 @@ if __name__ == "__main__":
     for oid in sorted(meta):
         label = order_names.get(oid, str(oid))
         m = meta[oid]
+        release_dt = TODAY + pd.Timedelta(hours=m['release_h'])
+        due_dt     = TODAY + pd.Timedelta(hours=m['due_h'])
         print(f"    {label}  priority={int(m['priority'])}  "
-              f"release={m['release_h']:.0f}h  "
-              f"due={m['due_h']:.0f}h  "
+              f"release={release_dt.strftime('%b %d %H:%M')}  "
+              f"due={due_dt.strftime('%b %d %H:%M')}  "
               f"ops={len(jobs[oid])}")
 
     print()
@@ -99,12 +130,12 @@ if __name__ == "__main__":
             )
     for m_id, users in sorted(machine_users.items()):
         if len(users) > 1:
-            print(f"    {wc_names.get(m_id, m_id):<8}  →  {', '.join(users)}")
+            print(f"    {wc_names.get(m_id, m_id):<8}  ->  {', '.join(users)}")
 
     # ── run all dispatching rules ─────────────────────────────────────────────
-    results, best_rule = dr.compare_all_rules(jobs, meta, wc_units)
+    results, best_rule = dr.compare_all_rules(jobs, meta, wc_units, wc_workers, worker_info)
 
-    base_date = pd.Timestamp("2024-01-01 00:00:00")
+    base_date = TODAY
 
     # ── full schedule + operation order for EVERY rule ────────────────────────
     for rule in dr.RULES:
@@ -121,10 +152,10 @@ if __name__ == "__main__":
         # ── (A) chronological operation order ────────────────────────────────
         print()
         print(f"  Operation execution order (chronological):")
-        print(f"  {'#':>3}  {'Machine':<8}  {'Order':<10}  {'Op':>4}  "
-              f"{'Start':>19}  {'End':>19}  {'Prio':>5}  {'Status':>6}")
-        print(f"  {'-'*3}  {'-'*8}  {'-'*10}  {'-'*4}  "
-              f"{'-'*19}  {'-'*19}  {'-'*5}  {'-'*6}")
+        print(f"  {'#':>3}  {'Machine':<8}  {'Order':<10}  {'Op':>4}  {'Worker':<8}  "
+              f"{'Start':>14}  {'End':>14}  {'Prio':>5}  {'Status':>6}")
+        print(f"  {'-'*3}  {'-'*8}  {'-'*10}  {'-'*4}  {'-'*8}  "
+              f"{'-'*14}  {'-'*14}  {'-'*5}  {'-'*6}")
 
         for idx, entry in enumerate(sched, 1):
             m_id     = entry["machine"]
@@ -136,17 +167,18 @@ if __name__ == "__main__":
             end_dt   = base_date + pd.Timedelta(hours=entry["end"])
             mname    = wc_names.get(m_id, str(m_id))
             olabel   = order_names.get(oid, str(oid))
-            print(f"  {idx:>3}  {mname:<8}  {olabel:<10}  {int(entry['op_num']):>4}  "
-                  f"{str(start_dt)[:19]:>19}  {str(end_dt)[:19]:>19}  "
+            worker   = str(entry.get("worker") or "-")
+            print(f"  {idx:>3}  {mname:<8}  {olabel:<10}  {int(entry['op_num']):>4}  {worker:<8}  "
+                  f"{start_dt.strftime('%b %d %H:%M'):>14}  {end_dt.strftime('%b %d %H:%M'):>14}  "
                   f"{prio:>5}  {late:>6}")
 
         # ── (B) schedule grouped by machine ──────────────────────────────────
         print()
         print(f"  Schedule by machine:")
-        print(f"  {'Machine':<8}  {'Order':<10}  {'Op':>4}  "
-              f"{'Start':>19}  {'End':>19}  {'Prio':>5}  {'Status':>6}")
-        print(f"  {'-'*8}  {'-'*10}  {'-'*4}  "
-              f"{'-'*19}  {'-'*19}  {'-'*5}  {'-'*6}")
+        print(f"  {'Machine':<8}  {'Order':<10}  {'Op':>4}  {'Worker':<8}  "
+              f"{'Start':>14}  {'End':>14}  {'Prio':>5}  {'Status':>6}")
+        print(f"  {'-'*8}  {'-'*10}  {'-'*4}  {'-'*8}  "
+              f"{'-'*14}  {'-'*14}  {'-'*5}  {'-'*6}")
 
         by_machine = {}
         for entry in sched:
@@ -163,11 +195,12 @@ if __name__ == "__main__":
             end_dt   = base_date + pd.Timedelta(hours=entry["end"])
             mname    = wc_names.get(m_id, str(m_id))
             olabel   = order_names.get(oid, str(oid))
+            worker   = str(entry.get("worker") or "-")
             if prev_m != m_id:
                 print()
                 prev_m = m_id
-            print(f"  {mname:<8}  {olabel:<10}  {int(entry['op_num']):>4}  "
-                  f"{str(start_dt)[:19]:>19}  {str(end_dt)[:19]:>19}  "
+            print(f"  {mname:<8}  {olabel:<10}  {int(entry['op_num']):>4}  {worker:<8}  "
+                  f"{start_dt.strftime('%b %d %H:%M'):>14}  {end_dt.strftime('%b %d %H:%M'):>14}  "
                   f"{prio:>5}  {late:>6}")
 
         # ── (C) order summary ─────────────────────────────────────────────────
@@ -182,7 +215,7 @@ if __name__ == "__main__":
             finish = base_date + pd.Timedelta(hours=ct)
             print(f"    {order_names.get(oid, str(oid)):<10}  "
                   f"priority={prio}  "
-                  f"finished={str(finish)[:19]}  {status}")
+                  f"finished={finish.strftime('%b %d %H:%M')}  {status}")
 
     # ── final comparison ──────────────────────────────────────────────────────
     print()
@@ -228,6 +261,22 @@ if __name__ == "__main__":
     fig, ax = plt.subplots(figsize=(14, max(4, n_machines * 1.2)))
     BAR_HEIGHT = 0.55
 
+    # shift window for day shading (use first worker's shift, all same in demo)
+    _sh_start = 8.0
+    _sh_end   = 16.0
+    if worker_info:
+        _fi = next(iter(worker_info.values()))
+        _sh_start = _fi["shift_start"]
+        _sh_end   = _fi["shift_end"]
+
+    _max_end   = max((e["end"] for e in schedule), default=24.0) + 8.0
+    _day_count = int(_max_end / 24) + 2
+
+    # shade off-shift periods (before shift start and after shift end each day)
+    for _d in range(_day_count):
+        ax.axvspan(_d*24,           _d*24 + _sh_start, alpha=0.10, color="gray", zorder=0)
+        ax.axvspan(_d*24 + _sh_end, (_d+1)*24,         alpha=0.10, color="gray", zorder=0)
+
     for entry in schedule:
         m     = entry["machine"]
         oid   = entry["order_id"]
@@ -259,7 +308,18 @@ if __name__ == "__main__":
 
     ax.set_yticks(range(n_machines))
     ax.set_yticklabels([wc_names.get(m, str(m)) for m in machine_order], fontsize=10)
-    ax.set_xlabel("Time (hours from start)", fontsize=11)
+
+    # X-axis: one tick per working day, labelled "Day N / Date"
+    _work_ticks  = [_d*24 + _sh_start for _d in range(_day_count)
+                    if _d*24 + _sh_start <= _max_end]
+    _work_labels = [
+        f"Day {_d+1}\n{(TODAY + pd.Timedelta(days=_d)).strftime('%b %d')}"
+        for _d in range(len(_work_ticks))
+    ]
+    ax.set_xticks(_work_ticks)
+    ax.set_xticklabels(_work_labels, fontsize=9)
+    ax.set_xlim(0, _max_end)
+    ax.set_xlabel("Working Day", fontsize=11)
     ax.set_title(
         f"Gantt Chart — Best Rule: {best_rule}  "
         f"(TWT = {results[best_rule]['twt']:.1f} h, "

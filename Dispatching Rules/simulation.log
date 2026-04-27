@@ -1,0 +1,2532 @@
+
+=================================================================
+[SIM] Rule: EDD
+[SIM] Orders: 3  Total ops: 18
+[SIM] Machines: [1, 2, 3, 4, 5]
+       machine=1  slots=1  workers=['1', '2']
+       machine=2  slots=1  workers=['1', '3', '4', '5', '7']
+       machine=3  slots=1  workers=['6', '7']
+       machine=4  slots=1  workers=['10']
+       machine=5  slots=1  workers=['8', '9', '10']
+[SIM] Job releases / due dates / priority:
+       order=1001  release=0.0h  due=22.0h  prio=1.0  ops=6
+       order=1002  release=0.0h  due=38.0h  prio=5.0  ops=7
+       order=1003  release=2.0h  due=62.0h  prio=9.0  ops=5
+=================================================================
+
+[SIM] Enqueuing first operation of each order:
+[SIM]   ENQUEUE order=1001 op#10 -> machine=1  ready@0.00h  duration=1.73h
+[SIM]   ENQUEUE order=1002 op#10 -> machine=1  ready@0.00h  duration=2.77h
+[SIM]   ENQUEUE order=1003 op#10 -> machine=2  ready@2.00h  duration=3.11h
+
+[SIM] Starting simulation loop (18 operations total)...
+       machine=1 queue: [order=1001 op#10 ready@0.0h, order=1002 op#10 ready@0.0h]
+       machine=2 queue: [order=1003 op#10 ready@2.0h]
+       machine=3 queue: [empty]
+       machine=4 queue: [empty]
+       machine=5 queue: [empty]
+       machine=1: mach_free_slot=0.00h  earliest_ready=0.00h  worker_avail=8.00h  -> candidate_t=8.00h
+       machine=2: mach_free_slot=0.00h  earliest_ready=2.00h  worker_avail=8.00h  -> candidate_t=8.00h
+[SIM]   >> Selected machine=1  slot=0  earliest_start=8.00h
+         order=1001 op#10 due=22.0h prio=1.0 duration=1.73h ready@0.00h
+         order=1002 op#10 due=38.0h prio=5.0 duration=2.77h ready@0.00h
+[SIM]   Rule=EDD picked: order=1001 op#10
+[SIM]   Eligible workers for machine=1: ['1', '2']
+         worker=1  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=2  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+[SIM]   >> Chosen worker: 1  available@8.00h
+[SIM]   SCHEDULE: order=1001 op#10 machine=1 worker=1
+                   tentative=8.00h  worker_free=8.00h
+                   START=8.00h  END=9.73h  duration=1.73h
+[SIM]   State update: machine=1 slot=0 now free@9.73h
+                     worker=1 now free@9.73h
+                     job_done_at[1001]=9.73h  next_op_idx=1/6
+[SIM]   ENQUEUE order=1001 op#20 -> machine=2  ready@9.73h  duration=1.71h
+       machine=1 queue: [order=1002 op#10 ready@0.0h]
+       machine=2 queue: [order=1003 op#10 ready@2.0h, order=1001 op#20 ready@9.7h]
+       machine=3 queue: [empty]
+       machine=4 queue: [empty]
+       machine=5 queue: [empty]
+       machine=1: mach_free_slot=9.73h  earliest_ready=0.00h  worker_avail=8.00h  -> candidate_t=9.73h
+       machine=2: mach_free_slot=0.00h  earliest_ready=2.00h  worker_avail=8.00h  -> candidate_t=8.00h
+[SIM]   >> Selected machine=2  slot=0  earliest_start=8.00h
+         order=1003 op#10 due=62.0h prio=9.0 duration=3.11h ready@2.00h
+[SIM]   Rule=EDD picked: order=1003 op#10
+[SIM]   Eligible workers for machine=2: ['1', '3', '4', '5', '7']
+         worker=1  free@9.73h  shift=8.0-16.0  -> avail@9.73h
+         worker=3  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=4  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=5  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=7  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+[SIM]   >> Chosen worker: 3  available@8.00h
+[SIM]   SCHEDULE: order=1003 op#10 machine=2 worker=3
+                   tentative=8.00h  worker_free=8.00h
+                   START=8.00h  END=11.11h  duration=3.11h
+[SIM]   State update: machine=2 slot=0 now free@11.11h
+                     worker=3 now free@11.11h
+                     job_done_at[1003]=11.11h  next_op_idx=1/5
+[SIM]   ENQUEUE order=1003 op#20 -> machine=4  ready@11.11h  duration=0.62h
+       machine=1 queue: [order=1002 op#10 ready@0.0h]
+       machine=2 queue: [order=1001 op#20 ready@9.7h]
+       machine=3 queue: [empty]
+       machine=4 queue: [order=1003 op#20 ready@11.1h]
+       machine=5 queue: [empty]
+       machine=1: mach_free_slot=9.73h  earliest_ready=0.00h  worker_avail=8.00h  -> candidate_t=9.73h
+       machine=2: mach_free_slot=11.11h  earliest_ready=9.73h  worker_avail=8.00h  -> candidate_t=11.11h
+       machine=4: mach_free_slot=0.00h  earliest_ready=11.11h  worker_avail=8.00h  -> candidate_t=11.11h
+[SIM]   >> Selected machine=1  slot=0  earliest_start=9.73h
+         order=1002 op#10 due=38.0h prio=5.0 duration=2.77h ready@0.00h
+[SIM]   Rule=EDD picked: order=1002 op#10
+[SIM]   Eligible workers for machine=1: ['1', '2']
+         worker=1  free@9.73h  shift=8.0-16.0  -> avail@9.73h
+         worker=2  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+[SIM]   >> Chosen worker: 2  available@8.00h
+[SIM]   SCHEDULE: order=1002 op#10 machine=1 worker=2
+                   tentative=9.73h  worker_free=8.00h
+                   START=9.73h  END=12.50h  duration=2.77h
+[SIM]   State update: machine=1 slot=0 now free@12.50h
+                     worker=2 now free@12.50h
+                     job_done_at[1002]=12.50h  next_op_idx=1/7
+[SIM]   ENQUEUE order=1002 op#20 -> machine=3  ready@12.50h  duration=0.62h
+       machine=1 queue: [empty]
+       machine=2 queue: [order=1001 op#20 ready@9.7h]
+       machine=3 queue: [order=1002 op#20 ready@12.5h]
+       machine=4 queue: [order=1003 op#20 ready@11.1h]
+       machine=5 queue: [empty]
+       machine=2: mach_free_slot=11.11h  earliest_ready=9.73h  worker_avail=8.00h  -> candidate_t=11.11h
+       machine=3: mach_free_slot=0.00h  earliest_ready=12.50h  worker_avail=8.00h  -> candidate_t=12.50h
+       machine=4: mach_free_slot=0.00h  earliest_ready=11.11h  worker_avail=8.00h  -> candidate_t=11.11h
+[SIM]   >> Selected machine=2  slot=0  earliest_start=11.11h
+         order=1001 op#20 due=22.0h prio=1.0 duration=1.71h ready@9.73h
+[SIM]   Rule=EDD picked: order=1001 op#20
+[SIM]   Eligible workers for machine=2: ['1', '3', '4', '5', '7']
+         worker=1  free@9.73h  shift=8.0-16.0  -> avail@9.73h
+         worker=3  free@11.11h  shift=8.0-16.0  -> avail@11.11h
+         worker=4  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=5  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=7  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+[SIM]   >> Chosen worker: 4  available@8.00h
+[SIM]   SCHEDULE: order=1001 op#20 machine=2 worker=4
+                   tentative=11.11h  worker_free=8.00h
+                   START=11.11h  END=12.82h  duration=1.71h
+[SIM]   State update: machine=2 slot=0 now free@12.82h
+                     worker=4 now free@12.82h
+                     job_done_at[1001]=12.82h  next_op_idx=2/6
+[SIM]   ENQUEUE order=1001 op#30 -> machine=3  ready@12.82h  duration=3.46h
+       machine=1 queue: [empty]
+       machine=2 queue: [empty]
+       machine=3 queue: [order=1002 op#20 ready@12.5h, order=1001 op#30 ready@12.8h]
+       machine=4 queue: [order=1003 op#20 ready@11.1h]
+       machine=5 queue: [empty]
+       machine=3: mach_free_slot=0.00h  earliest_ready=12.50h  worker_avail=8.00h  -> candidate_t=12.50h
+       machine=4: mach_free_slot=0.00h  earliest_ready=11.11h  worker_avail=8.00h  -> candidate_t=11.11h
+[SIM]   >> Selected machine=4  slot=0  earliest_start=11.11h
+         order=1003 op#20 due=62.0h prio=9.0 duration=0.62h ready@11.11h
+[SIM]   Rule=EDD picked: order=1003 op#20
+[SIM]   Eligible workers for machine=4: ['10']
+         worker=10  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+[SIM]   >> Chosen worker: 10  available@8.00h
+[SIM]   SCHEDULE: order=1003 op#20 machine=4 worker=10
+                   tentative=11.11h  worker_free=8.00h
+                   START=11.11h  END=11.74h  duration=0.62h
+[SIM]   State update: machine=4 slot=0 now free@11.74h
+                     worker=10 now free@11.74h
+                     job_done_at[1003]=11.74h  next_op_idx=2/5
+[SIM]   ENQUEUE order=1003 op#30 -> machine=1  ready@11.74h  duration=0.62h
+       machine=1 queue: [order=1003 op#30 ready@11.7h]
+       machine=2 queue: [empty]
+       machine=3 queue: [order=1002 op#20 ready@12.5h, order=1001 op#30 ready@12.8h]
+       machine=4 queue: [empty]
+       machine=5 queue: [empty]
+       machine=1: mach_free_slot=12.50h  earliest_ready=11.74h  worker_avail=9.73h  -> candidate_t=12.50h
+       machine=3: mach_free_slot=0.00h  earliest_ready=12.50h  worker_avail=8.00h  -> candidate_t=12.50h
+[SIM]   >> Selected machine=1  slot=0  earliest_start=12.50h
+         order=1003 op#30 due=62.0h prio=9.0 duration=0.62h ready@11.74h
+[SIM]   Rule=EDD picked: order=1003 op#30
+[SIM]   Eligible workers for machine=1: ['1', '2']
+         worker=1  free@9.73h  shift=8.0-16.0  -> avail@9.73h
+         worker=2  free@12.50h  shift=8.0-16.0  -> avail@12.50h
+[SIM]   >> Chosen worker: 1  available@9.73h
+[SIM]   SCHEDULE: order=1003 op#30 machine=1 worker=1
+                   tentative=12.50h  worker_free=9.73h
+                   START=12.50h  END=13.12h  duration=0.62h
+[SIM]   State update: machine=1 slot=0 now free@13.12h
+                     worker=1 now free@13.12h
+                     job_done_at[1003]=13.12h  next_op_idx=3/5
+[SIM]   ENQUEUE order=1003 op#40 -> machine=3  ready@13.12h  duration=0.62h
+       machine=1 queue: [empty]
+       machine=2 queue: [empty]
+       machine=3 queue: [order=1002 op#20 ready@12.5h, order=1001 op#30 ready@12.8h, order=1003 op#40 ready@13.1h]
+       machine=4 queue: [empty]
+       machine=5 queue: [empty]
+       machine=3: mach_free_slot=0.00h  earliest_ready=12.50h  worker_avail=8.00h  -> candidate_t=12.50h
+[SIM]   >> Selected machine=3  slot=0  earliest_start=12.50h
+         order=1002 op#20 due=38.0h prio=5.0 duration=0.62h ready@12.50h
+[SIM]   Rule=EDD picked: order=1002 op#20
+[SIM]   Eligible workers for machine=3: ['6', '7']
+         worker=6  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=7  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+[SIM]   >> Chosen worker: 6  available@8.00h
+[SIM]   SCHEDULE: order=1002 op#20 machine=3 worker=6
+                   tentative=12.50h  worker_free=8.00h
+                   START=12.50h  END=13.12h  duration=0.62h
+[SIM]   State update: machine=3 slot=0 now free@13.12h
+                     worker=6 now free@13.12h
+                     job_done_at[1002]=13.12h  next_op_idx=2/7
+[SIM]   ENQUEUE order=1002 op#30 -> machine=2  ready@13.12h  duration=3.80h
+       machine=1 queue: [empty]
+       machine=2 queue: [order=1002 op#30 ready@13.1h]
+       machine=3 queue: [order=1001 op#30 ready@12.8h, order=1003 op#40 ready@13.1h]
+       machine=4 queue: [empty]
+       machine=5 queue: [empty]
+       machine=2: mach_free_slot=12.82h  earliest_ready=13.12h  worker_avail=8.00h  -> candidate_t=13.12h
+       machine=3: mach_free_slot=13.12h  earliest_ready=12.82h  worker_avail=8.00h  -> candidate_t=13.12h
+[SIM]   >> Selected machine=2  slot=0  earliest_start=13.12h
+         order=1002 op#30 due=38.0h prio=5.0 duration=3.80h ready@13.12h
+[SIM]   Rule=EDD picked: order=1002 op#30
+[SIM]   Eligible workers for machine=2: ['1', '3', '4', '5', '7']
+         worker=1  free@13.12h  shift=8.0-16.0  -> avail@13.12h
+         worker=3  free@11.11h  shift=8.0-16.0  -> avail@11.11h
+         worker=4  free@12.82h  shift=8.0-16.0  -> avail@12.82h
+         worker=5  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=7  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+[SIM]   >> Chosen worker: 5  available@8.00h
+[SIM]   SCHEDULE: order=1002 op#30 machine=2 worker=5
+                   tentative=13.12h  worker_free=8.00h
+                   START=13.12h  END=16.93h  duration=3.80h
+[SIM]   State update: machine=2 slot=0 now free@16.93h
+                     worker=5 now free@16.93h
+                     job_done_at[1002]=16.93h  next_op_idx=3/7
+[SIM]   ENQUEUE order=1002 op#40 -> machine=4  ready@16.93h  duration=0.62h
+       machine=1 queue: [empty]
+       machine=2 queue: [empty]
+       machine=3 queue: [order=1001 op#30 ready@12.8h, order=1003 op#40 ready@13.1h]
+       machine=4 queue: [order=1002 op#40 ready@16.9h]
+       machine=5 queue: [empty]
+       machine=3: mach_free_slot=13.12h  earliest_ready=12.82h  worker_avail=8.00h  -> candidate_t=13.12h
+       machine=4: mach_free_slot=11.74h  earliest_ready=16.93h  worker_avail=11.74h  -> candidate_t=16.93h
+[SIM]   >> Selected machine=3  slot=0  earliest_start=13.12h
+         order=1001 op#30 due=22.0h prio=1.0 duration=3.46h ready@12.82h
+         order=1003 op#40 due=62.0h prio=9.0 duration=0.62h ready@13.12h
+[SIM]   Rule=EDD picked: order=1001 op#30
+[SIM]   Eligible workers for machine=3: ['6', '7']
+         worker=6  free@13.12h  shift=8.0-16.0  -> avail@13.12h
+         worker=7  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+[SIM]   >> Chosen worker: 7  available@8.00h
+[SIM]   SCHEDULE: order=1001 op#30 machine=3 worker=7
+                   tentative=13.12h  worker_free=8.00h
+                   START=13.12h  END=16.58h  duration=3.46h
+[SIM]   State update: machine=3 slot=0 now free@16.58h
+                     worker=7 now free@16.58h
+                     job_done_at[1001]=16.58h  next_op_idx=3/6
+[SIM]   ENQUEUE order=1001 op#40 -> machine=4  ready@16.58h  duration=0.77h
+       machine=1 queue: [empty]
+       machine=2 queue: [empty]
+       machine=3 queue: [order=1003 op#40 ready@13.1h]
+       machine=4 queue: [order=1002 op#40 ready@16.9h, order=1001 op#40 ready@16.6h]
+       machine=5 queue: [empty]
+       machine=3: mach_free_slot=16.58h  earliest_ready=13.12h  worker_avail=13.12h  -> candidate_t=16.58h
+       machine=4: mach_free_slot=11.74h  earliest_ready=16.58h  worker_avail=11.74h  -> candidate_t=16.58h
+[SIM]   >> Selected machine=3  slot=0  earliest_start=16.58h
+         order=1003 op#40 due=62.0h prio=9.0 duration=0.62h ready@13.12h
+[SIM]   Rule=EDD picked: order=1003 op#40
+[SIM]   Eligible workers for machine=3: ['6', '7']
+         worker=6  free@13.12h  shift=8.0-16.0  -> avail@13.12h
+         worker=7  free@16.58h  shift=8.0-16.0  -> avail@32.00h
+[SIM]   >> Chosen worker: 6  available@13.12h
+[SIM]   SCHEDULE: order=1003 op#40 machine=3 worker=6
+                   tentative=32.00h  worker_free=13.12h
+                   START=32.00h  END=32.62h  duration=0.62h
+[SIM]   State update: machine=3 slot=0 now free@32.62h
+                     worker=6 now free@32.62h
+                     job_done_at[1003]=32.62h  next_op_idx=4/5
+[SIM]   ENQUEUE order=1003 op#50 -> machine=5  ready@32.62h  duration=0.62h
+       machine=1 queue: [empty]
+       machine=2 queue: [empty]
+       machine=3 queue: [empty]
+       machine=4 queue: [order=1002 op#40 ready@16.9h, order=1001 op#40 ready@16.6h]
+       machine=5 queue: [order=1003 op#50 ready@32.6h]
+       machine=4: mach_free_slot=11.74h  earliest_ready=16.58h  worker_avail=11.74h  -> candidate_t=16.58h
+       machine=5: mach_free_slot=0.00h  earliest_ready=32.62h  worker_avail=8.00h  -> candidate_t=32.62h
+[SIM]   >> Selected machine=4  slot=0  earliest_start=16.58h
+         order=1001 op#40 due=22.0h prio=1.0 duration=0.77h ready@16.58h
+[SIM]   Rule=EDD picked: order=1001 op#40
+[SIM]   Eligible workers for machine=4: ['10']
+         worker=10  free@11.74h  shift=8.0-16.0  -> avail@11.74h
+[SIM]   >> Chosen worker: 10  available@11.74h
+[SIM]   SCHEDULE: order=1001 op#40 machine=4 worker=10
+                   tentative=32.00h  worker_free=11.74h
+                   START=32.00h  END=32.77h  duration=0.77h
+[SIM]   State update: machine=4 slot=0 now free@32.77h
+                     worker=10 now free@32.77h
+                     job_done_at[1001]=32.77h  next_op_idx=4/6
+[SIM]   ENQUEUE order=1001 op#50 -> machine=2  ready@32.77h  duration=0.68h
+       machine=1 queue: [empty]
+       machine=2 queue: [order=1001 op#50 ready@32.8h]
+       machine=3 queue: [empty]
+       machine=4 queue: [order=1002 op#40 ready@16.9h]
+       machine=5 queue: [order=1003 op#50 ready@32.6h]
+       machine=2: mach_free_slot=16.93h  earliest_ready=32.77h  worker_avail=11.11h  -> candidate_t=32.77h
+       machine=4: mach_free_slot=32.77h  earliest_ready=16.93h  worker_avail=32.77h  -> candidate_t=32.77h
+       machine=5: mach_free_slot=0.00h  earliest_ready=32.62h  worker_avail=8.00h  -> candidate_t=32.62h
+[SIM]   >> Selected machine=5  slot=0  earliest_start=32.62h
+         order=1003 op#50 due=62.0h prio=9.0 duration=0.62h ready@32.62h
+[SIM]   Rule=EDD picked: order=1003 op#50
+[SIM]   Eligible workers for machine=5: ['8', '9', '10']
+         worker=8  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=9  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=10  free@32.77h  shift=8.0-16.0  -> avail@32.77h
+[SIM]   >> Chosen worker: 8  available@8.00h
+[SIM]   SCHEDULE: order=1003 op#50 machine=5 worker=8
+                   tentative=32.62h  worker_free=8.00h
+                   START=32.62h  END=33.25h  duration=0.62h
+[SIM]   State update: machine=5 slot=0 now free@33.25h
+                     worker=8 now free@33.25h
+                     job_done_at[1003]=33.25h  next_op_idx=5/5
+[SIM]   *** ORDER 1003 COMPLETE at 33.25h (due=62.00h) ***
+       machine=1 queue: [empty]
+       machine=2 queue: [order=1001 op#50 ready@32.8h]
+       machine=3 queue: [empty]
+       machine=4 queue: [order=1002 op#40 ready@16.9h]
+       machine=5 queue: [empty]
+       machine=2: mach_free_slot=16.93h  earliest_ready=32.77h  worker_avail=11.11h  -> candidate_t=32.77h
+       machine=4: mach_free_slot=32.77h  earliest_ready=16.93h  worker_avail=32.77h  -> candidate_t=32.77h
+[SIM]   >> Selected machine=2  slot=0  earliest_start=32.77h
+         order=1001 op#50 due=22.0h prio=1.0 duration=0.68h ready@32.77h
+[SIM]   Rule=EDD picked: order=1001 op#50
+[SIM]   Eligible workers for machine=2: ['1', '3', '4', '5', '7']
+         worker=1  free@13.12h  shift=8.0-16.0  -> avail@13.12h
+         worker=3  free@11.11h  shift=8.0-16.0  -> avail@11.11h
+         worker=4  free@12.82h  shift=8.0-16.0  -> avail@12.82h
+         worker=5  free@16.93h  shift=8.0-16.0  -> avail@32.00h
+         worker=7  free@16.58h  shift=8.0-16.0  -> avail@32.00h
+[SIM]   >> Chosen worker: 3  available@11.11h
+[SIM]   SCHEDULE: order=1001 op#50 machine=2 worker=3
+                   tentative=32.77h  worker_free=11.11h
+                   START=32.77h  END=33.45h  duration=0.68h
+[SIM]   State update: machine=2 slot=0 now free@33.45h
+                     worker=3 now free@33.45h
+                     job_done_at[1001]=33.45h  next_op_idx=5/6
+[SIM]   ENQUEUE order=1001 op#60 -> machine=5  ready@33.45h  duration=0.73h
+       machine=1 queue: [empty]
+       machine=2 queue: [empty]
+       machine=3 queue: [empty]
+       machine=4 queue: [order=1002 op#40 ready@16.9h]
+       machine=5 queue: [order=1001 op#60 ready@33.5h]
+       machine=4: mach_free_slot=32.77h  earliest_ready=16.93h  worker_avail=32.77h  -> candidate_t=32.77h
+       machine=5: mach_free_slot=33.25h  earliest_ready=33.45h  worker_avail=8.00h  -> candidate_t=33.45h
+[SIM]   >> Selected machine=4  slot=0  earliest_start=32.77h
+         order=1002 op#40 due=38.0h prio=5.0 duration=0.62h ready@16.93h
+[SIM]   Rule=EDD picked: order=1002 op#40
+[SIM]   Eligible workers for machine=4: ['10']
+         worker=10  free@32.77h  shift=8.0-16.0  -> avail@32.77h
+[SIM]   >> Chosen worker: 10  available@32.77h
+[SIM]   SCHEDULE: order=1002 op#40 machine=4 worker=10
+                   tentative=32.77h  worker_free=32.77h
+                   START=32.77h  END=33.39h  duration=0.62h
+[SIM]   State update: machine=4 slot=0 now free@33.39h
+                     worker=10 now free@33.39h
+                     job_done_at[1002]=33.39h  next_op_idx=4/7
+[SIM]   ENQUEUE order=1002 op#50 -> machine=5  ready@33.39h  duration=0.62h
+       machine=1 queue: [empty]
+       machine=2 queue: [empty]
+       machine=3 queue: [empty]
+       machine=4 queue: [empty]
+       machine=5 queue: [order=1001 op#60 ready@33.5h, order=1002 op#50 ready@33.4h]
+       machine=5: mach_free_slot=33.25h  earliest_ready=33.39h  worker_avail=8.00h  -> candidate_t=33.39h
+[SIM]   >> Selected machine=5  slot=0  earliest_start=33.39h
+         order=1002 op#50 due=38.0h prio=5.0 duration=0.62h ready@33.39h
+[SIM]   Rule=EDD picked: order=1002 op#50
+[SIM]   Eligible workers for machine=5: ['8', '9', '10']
+         worker=8  free@33.25h  shift=8.0-16.0  -> avail@33.25h
+         worker=9  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=10  free@33.39h  shift=8.0-16.0  -> avail@33.39h
+[SIM]   >> Chosen worker: 9  available@8.00h
+[SIM]   SCHEDULE: order=1002 op#50 machine=5 worker=9
+                   tentative=33.39h  worker_free=8.00h
+                   START=33.39h  END=34.02h  duration=0.62h
+[SIM]   State update: machine=5 slot=0 now free@34.02h
+                     worker=9 now free@34.02h
+                     job_done_at[1002]=34.02h  next_op_idx=5/7
+[SIM]   ENQUEUE order=1002 op#60 -> machine=3  ready@34.02h  duration=0.62h
+       machine=1 queue: [empty]
+       machine=2 queue: [empty]
+       machine=3 queue: [order=1002 op#60 ready@34.0h]
+       machine=4 queue: [empty]
+       machine=5 queue: [order=1001 op#60 ready@33.5h]
+       machine=3: mach_free_slot=32.62h  earliest_ready=34.02h  worker_avail=32.00h  -> candidate_t=34.02h
+       machine=5: mach_free_slot=34.02h  earliest_ready=33.45h  worker_avail=33.25h  -> candidate_t=34.02h
+[SIM]   >> Selected machine=3  slot=0  earliest_start=34.02h
+         order=1002 op#60 due=38.0h prio=5.0 duration=0.62h ready@34.02h
+[SIM]   Rule=EDD picked: order=1002 op#60
+[SIM]   Eligible workers for machine=3: ['6', '7']
+         worker=6  free@32.62h  shift=8.0-16.0  -> avail@32.62h
+         worker=7  free@16.58h  shift=8.0-16.0  -> avail@32.00h
+[SIM]   >> Chosen worker: 7  available@32.00h
+[SIM]   SCHEDULE: order=1002 op#60 machine=3 worker=7
+                   tentative=34.02h  worker_free=32.00h
+                   START=34.02h  END=34.64h  duration=0.62h
+[SIM]   State update: machine=3 slot=0 now free@34.64h
+                     worker=7 now free@34.64h
+                     job_done_at[1002]=34.64h  next_op_idx=6/7
+[SIM]   ENQUEUE order=1002 op#70 -> machine=5  ready@34.64h  duration=0.62h
+       machine=1 queue: [empty]
+       machine=2 queue: [empty]
+       machine=3 queue: [empty]
+       machine=4 queue: [empty]
+       machine=5 queue: [order=1001 op#60 ready@33.5h, order=1002 op#70 ready@34.6h]
+       machine=5: mach_free_slot=34.02h  earliest_ready=33.45h  worker_avail=33.25h  -> candidate_t=34.02h
+[SIM]   >> Selected machine=5  slot=0  earliest_start=34.02h
+         order=1001 op#60 due=22.0h prio=1.0 duration=0.73h ready@33.45h
+[SIM]   Rule=EDD picked: order=1001 op#60
+[SIM]   Eligible workers for machine=5: ['8', '9', '10']
+         worker=8  free@33.25h  shift=8.0-16.0  -> avail@33.25h
+         worker=9  free@34.02h  shift=8.0-16.0  -> avail@34.02h
+         worker=10  free@33.39h  shift=8.0-16.0  -> avail@33.39h
+[SIM]   >> Chosen worker: 8  available@33.25h
+[SIM]   SCHEDULE: order=1001 op#60 machine=5 worker=8
+                   tentative=34.02h  worker_free=33.25h
+                   START=34.02h  END=34.74h  duration=0.73h
+[SIM]   State update: machine=5 slot=0 now free@34.74h
+                     worker=8 now free@34.74h
+                     job_done_at[1001]=34.74h  next_op_idx=6/6
+[SIM]   *** ORDER 1001 COMPLETE at 34.74h (due=22.00h) ***
+       machine=1 queue: [empty]
+       machine=2 queue: [empty]
+       machine=3 queue: [empty]
+       machine=4 queue: [empty]
+       machine=5 queue: [order=1002 op#70 ready@34.6h]
+       machine=5: mach_free_slot=34.74h  earliest_ready=34.64h  worker_avail=33.39h  -> candidate_t=34.74h
+[SIM]   >> Selected machine=5  slot=0  earliest_start=34.74h
+         order=1002 op#70 due=38.0h prio=5.0 duration=0.62h ready@34.64h
+[SIM]   Rule=EDD picked: order=1002 op#70
+[SIM]   Eligible workers for machine=5: ['8', '9', '10']
+         worker=8  free@34.74h  shift=8.0-16.0  -> avail@34.74h
+         worker=9  free@34.02h  shift=8.0-16.0  -> avail@34.02h
+         worker=10  free@33.39h  shift=8.0-16.0  -> avail@33.39h
+[SIM]   >> Chosen worker: 10  available@33.39h
+[SIM]   SCHEDULE: order=1002 op#70 machine=5 worker=10
+                   tentative=34.74h  worker_free=33.39h
+                   START=34.74h  END=35.37h  duration=0.62h
+[SIM]   State update: machine=5 slot=0 now free@35.37h
+                     worker=10 now free@35.37h
+                     job_done_at[1002]=35.37h  next_op_idx=7/7
+[SIM]   *** ORDER 1002 COMPLETE at 35.37h (due=38.00h) ***
+
+[SIM] ── TWT Calculation ──
+       order=1003  finish=33.25h  due=62.00h  prio=9.0  weight=1.0  tardiness=0.00h  contrib=0.00  [on time]
+       order=1001  finish=34.74h  due=22.00h  prio=1.0  weight=9.0  tardiness=12.74h  contrib=114.70  [LATE by 12.74h]
+       order=1002  finish=35.37h  due=38.00h  prio=5.0  weight=5.0  tardiness=0.00h  contrib=0.00  [on time]
+[SIM] Total TWT = 114.7031h
+=================================================================
+
+
+=================================================================
+[SIM] Rule: SPT
+[SIM] Orders: 3  Total ops: 18
+[SIM] Machines: [1, 2, 3, 4, 5]
+       machine=1  slots=1  workers=['1', '2']
+       machine=2  slots=1  workers=['1', '3', '4', '5', '7']
+       machine=3  slots=1  workers=['6', '7']
+       machine=4  slots=1  workers=['10']
+       machine=5  slots=1  workers=['8', '9', '10']
+[SIM] Job releases / due dates / priority:
+       order=1001  release=0.0h  due=22.0h  prio=1.0  ops=6
+       order=1002  release=0.0h  due=38.0h  prio=5.0  ops=7
+       order=1003  release=2.0h  due=62.0h  prio=9.0  ops=5
+=================================================================
+
+[SIM] Enqueuing first operation of each order:
+[SIM]   ENQUEUE order=1001 op#10 -> machine=1  ready@0.00h  duration=1.73h
+[SIM]   ENQUEUE order=1002 op#10 -> machine=1  ready@0.00h  duration=2.77h
+[SIM]   ENQUEUE order=1003 op#10 -> machine=2  ready@2.00h  duration=3.11h
+
+[SIM] Starting simulation loop (18 operations total)...
+       machine=1 queue: [order=1001 op#10 ready@0.0h, order=1002 op#10 ready@0.0h]
+       machine=2 queue: [order=1003 op#10 ready@2.0h]
+       machine=3 queue: [empty]
+       machine=4 queue: [empty]
+       machine=5 queue: [empty]
+       machine=1: mach_free_slot=0.00h  earliest_ready=0.00h  worker_avail=8.00h  -> candidate_t=8.00h
+       machine=2: mach_free_slot=0.00h  earliest_ready=2.00h  worker_avail=8.00h  -> candidate_t=8.00h
+[SIM]   >> Selected machine=1  slot=0  earliest_start=8.00h
+         order=1001 op#10 due=22.0h prio=1.0 duration=1.73h ready@0.00h
+         order=1002 op#10 due=38.0h prio=5.0 duration=2.77h ready@0.00h
+[SIM]   Rule=SPT picked: order=1001 op#10
+[SIM]   Eligible workers for machine=1: ['1', '2']
+         worker=1  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=2  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+[SIM]   >> Chosen worker: 1  available@8.00h
+[SIM]   SCHEDULE: order=1001 op#10 machine=1 worker=1
+                   tentative=8.00h  worker_free=8.00h
+                   START=8.00h  END=9.73h  duration=1.73h
+[SIM]   State update: machine=1 slot=0 now free@9.73h
+                     worker=1 now free@9.73h
+                     job_done_at[1001]=9.73h  next_op_idx=1/6
+[SIM]   ENQUEUE order=1001 op#20 -> machine=2  ready@9.73h  duration=1.71h
+       machine=1 queue: [order=1002 op#10 ready@0.0h]
+       machine=2 queue: [order=1003 op#10 ready@2.0h, order=1001 op#20 ready@9.7h]
+       machine=3 queue: [empty]
+       machine=4 queue: [empty]
+       machine=5 queue: [empty]
+       machine=1: mach_free_slot=9.73h  earliest_ready=0.00h  worker_avail=8.00h  -> candidate_t=9.73h
+       machine=2: mach_free_slot=0.00h  earliest_ready=2.00h  worker_avail=8.00h  -> candidate_t=8.00h
+[SIM]   >> Selected machine=2  slot=0  earliest_start=8.00h
+         order=1003 op#10 due=62.0h prio=9.0 duration=3.11h ready@2.00h
+[SIM]   Rule=SPT picked: order=1003 op#10
+[SIM]   Eligible workers for machine=2: ['1', '3', '4', '5', '7']
+         worker=1  free@9.73h  shift=8.0-16.0  -> avail@9.73h
+         worker=3  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=4  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=5  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=7  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+[SIM]   >> Chosen worker: 3  available@8.00h
+[SIM]   SCHEDULE: order=1003 op#10 machine=2 worker=3
+                   tentative=8.00h  worker_free=8.00h
+                   START=8.00h  END=11.11h  duration=3.11h
+[SIM]   State update: machine=2 slot=0 now free@11.11h
+                     worker=3 now free@11.11h
+                     job_done_at[1003]=11.11h  next_op_idx=1/5
+[SIM]   ENQUEUE order=1003 op#20 -> machine=4  ready@11.11h  duration=0.62h
+       machine=1 queue: [order=1002 op#10 ready@0.0h]
+       machine=2 queue: [order=1001 op#20 ready@9.7h]
+       machine=3 queue: [empty]
+       machine=4 queue: [order=1003 op#20 ready@11.1h]
+       machine=5 queue: [empty]
+       machine=1: mach_free_slot=9.73h  earliest_ready=0.00h  worker_avail=8.00h  -> candidate_t=9.73h
+       machine=2: mach_free_slot=11.11h  earliest_ready=9.73h  worker_avail=8.00h  -> candidate_t=11.11h
+       machine=4: mach_free_slot=0.00h  earliest_ready=11.11h  worker_avail=8.00h  -> candidate_t=11.11h
+[SIM]   >> Selected machine=1  slot=0  earliest_start=9.73h
+         order=1002 op#10 due=38.0h prio=5.0 duration=2.77h ready@0.00h
+[SIM]   Rule=SPT picked: order=1002 op#10
+[SIM]   Eligible workers for machine=1: ['1', '2']
+         worker=1  free@9.73h  shift=8.0-16.0  -> avail@9.73h
+         worker=2  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+[SIM]   >> Chosen worker: 2  available@8.00h
+[SIM]   SCHEDULE: order=1002 op#10 machine=1 worker=2
+                   tentative=9.73h  worker_free=8.00h
+                   START=9.73h  END=12.50h  duration=2.77h
+[SIM]   State update: machine=1 slot=0 now free@12.50h
+                     worker=2 now free@12.50h
+                     job_done_at[1002]=12.50h  next_op_idx=1/7
+[SIM]   ENQUEUE order=1002 op#20 -> machine=3  ready@12.50h  duration=0.62h
+       machine=1 queue: [empty]
+       machine=2 queue: [order=1001 op#20 ready@9.7h]
+       machine=3 queue: [order=1002 op#20 ready@12.5h]
+       machine=4 queue: [order=1003 op#20 ready@11.1h]
+       machine=5 queue: [empty]
+       machine=2: mach_free_slot=11.11h  earliest_ready=9.73h  worker_avail=8.00h  -> candidate_t=11.11h
+       machine=3: mach_free_slot=0.00h  earliest_ready=12.50h  worker_avail=8.00h  -> candidate_t=12.50h
+       machine=4: mach_free_slot=0.00h  earliest_ready=11.11h  worker_avail=8.00h  -> candidate_t=11.11h
+[SIM]   >> Selected machine=2  slot=0  earliest_start=11.11h
+         order=1001 op#20 due=22.0h prio=1.0 duration=1.71h ready@9.73h
+[SIM]   Rule=SPT picked: order=1001 op#20
+[SIM]   Eligible workers for machine=2: ['1', '3', '4', '5', '7']
+         worker=1  free@9.73h  shift=8.0-16.0  -> avail@9.73h
+         worker=3  free@11.11h  shift=8.0-16.0  -> avail@11.11h
+         worker=4  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=5  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=7  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+[SIM]   >> Chosen worker: 4  available@8.00h
+[SIM]   SCHEDULE: order=1001 op#20 machine=2 worker=4
+                   tentative=11.11h  worker_free=8.00h
+                   START=11.11h  END=12.82h  duration=1.71h
+[SIM]   State update: machine=2 slot=0 now free@12.82h
+                     worker=4 now free@12.82h
+                     job_done_at[1001]=12.82h  next_op_idx=2/6
+[SIM]   ENQUEUE order=1001 op#30 -> machine=3  ready@12.82h  duration=3.46h
+       machine=1 queue: [empty]
+       machine=2 queue: [empty]
+       machine=3 queue: [order=1002 op#20 ready@12.5h, order=1001 op#30 ready@12.8h]
+       machine=4 queue: [order=1003 op#20 ready@11.1h]
+       machine=5 queue: [empty]
+       machine=3: mach_free_slot=0.00h  earliest_ready=12.50h  worker_avail=8.00h  -> candidate_t=12.50h
+       machine=4: mach_free_slot=0.00h  earliest_ready=11.11h  worker_avail=8.00h  -> candidate_t=11.11h
+[SIM]   >> Selected machine=4  slot=0  earliest_start=11.11h
+         order=1003 op#20 due=62.0h prio=9.0 duration=0.62h ready@11.11h
+[SIM]   Rule=SPT picked: order=1003 op#20
+[SIM]   Eligible workers for machine=4: ['10']
+         worker=10  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+[SIM]   >> Chosen worker: 10  available@8.00h
+[SIM]   SCHEDULE: order=1003 op#20 machine=4 worker=10
+                   tentative=11.11h  worker_free=8.00h
+                   START=11.11h  END=11.74h  duration=0.62h
+[SIM]   State update: machine=4 slot=0 now free@11.74h
+                     worker=10 now free@11.74h
+                     job_done_at[1003]=11.74h  next_op_idx=2/5
+[SIM]   ENQUEUE order=1003 op#30 -> machine=1  ready@11.74h  duration=0.62h
+       machine=1 queue: [order=1003 op#30 ready@11.7h]
+       machine=2 queue: [empty]
+       machine=3 queue: [order=1002 op#20 ready@12.5h, order=1001 op#30 ready@12.8h]
+       machine=4 queue: [empty]
+       machine=5 queue: [empty]
+       machine=1: mach_free_slot=12.50h  earliest_ready=11.74h  worker_avail=9.73h  -> candidate_t=12.50h
+       machine=3: mach_free_slot=0.00h  earliest_ready=12.50h  worker_avail=8.00h  -> candidate_t=12.50h
+[SIM]   >> Selected machine=1  slot=0  earliest_start=12.50h
+         order=1003 op#30 due=62.0h prio=9.0 duration=0.62h ready@11.74h
+[SIM]   Rule=SPT picked: order=1003 op#30
+[SIM]   Eligible workers for machine=1: ['1', '2']
+         worker=1  free@9.73h  shift=8.0-16.0  -> avail@9.73h
+         worker=2  free@12.50h  shift=8.0-16.0  -> avail@12.50h
+[SIM]   >> Chosen worker: 1  available@9.73h
+[SIM]   SCHEDULE: order=1003 op#30 machine=1 worker=1
+                   tentative=12.50h  worker_free=9.73h
+                   START=12.50h  END=13.12h  duration=0.62h
+[SIM]   State update: machine=1 slot=0 now free@13.12h
+                     worker=1 now free@13.12h
+                     job_done_at[1003]=13.12h  next_op_idx=3/5
+[SIM]   ENQUEUE order=1003 op#40 -> machine=3  ready@13.12h  duration=0.62h
+       machine=1 queue: [empty]
+       machine=2 queue: [empty]
+       machine=3 queue: [order=1002 op#20 ready@12.5h, order=1001 op#30 ready@12.8h, order=1003 op#40 ready@13.1h]
+       machine=4 queue: [empty]
+       machine=5 queue: [empty]
+       machine=3: mach_free_slot=0.00h  earliest_ready=12.50h  worker_avail=8.00h  -> candidate_t=12.50h
+[SIM]   >> Selected machine=3  slot=0  earliest_start=12.50h
+         order=1002 op#20 due=38.0h prio=5.0 duration=0.62h ready@12.50h
+[SIM]   Rule=SPT picked: order=1002 op#20
+[SIM]   Eligible workers for machine=3: ['6', '7']
+         worker=6  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=7  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+[SIM]   >> Chosen worker: 6  available@8.00h
+[SIM]   SCHEDULE: order=1002 op#20 machine=3 worker=6
+                   tentative=12.50h  worker_free=8.00h
+                   START=12.50h  END=13.12h  duration=0.62h
+[SIM]   State update: machine=3 slot=0 now free@13.12h
+                     worker=6 now free@13.12h
+                     job_done_at[1002]=13.12h  next_op_idx=2/7
+[SIM]   ENQUEUE order=1002 op#30 -> machine=2  ready@13.12h  duration=3.80h
+       machine=1 queue: [empty]
+       machine=2 queue: [order=1002 op#30 ready@13.1h]
+       machine=3 queue: [order=1001 op#30 ready@12.8h, order=1003 op#40 ready@13.1h]
+       machine=4 queue: [empty]
+       machine=5 queue: [empty]
+       machine=2: mach_free_slot=12.82h  earliest_ready=13.12h  worker_avail=8.00h  -> candidate_t=13.12h
+       machine=3: mach_free_slot=13.12h  earliest_ready=12.82h  worker_avail=8.00h  -> candidate_t=13.12h
+[SIM]   >> Selected machine=2  slot=0  earliest_start=13.12h
+         order=1002 op#30 due=38.0h prio=5.0 duration=3.80h ready@13.12h
+[SIM]   Rule=SPT picked: order=1002 op#30
+[SIM]   Eligible workers for machine=2: ['1', '3', '4', '5', '7']
+         worker=1  free@13.12h  shift=8.0-16.0  -> avail@13.12h
+         worker=3  free@11.11h  shift=8.0-16.0  -> avail@11.11h
+         worker=4  free@12.82h  shift=8.0-16.0  -> avail@12.82h
+         worker=5  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=7  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+[SIM]   >> Chosen worker: 5  available@8.00h
+[SIM]   SCHEDULE: order=1002 op#30 machine=2 worker=5
+                   tentative=13.12h  worker_free=8.00h
+                   START=13.12h  END=16.93h  duration=3.80h
+[SIM]   State update: machine=2 slot=0 now free@16.93h
+                     worker=5 now free@16.93h
+                     job_done_at[1002]=16.93h  next_op_idx=3/7
+[SIM]   ENQUEUE order=1002 op#40 -> machine=4  ready@16.93h  duration=0.62h
+       machine=1 queue: [empty]
+       machine=2 queue: [empty]
+       machine=3 queue: [order=1001 op#30 ready@12.8h, order=1003 op#40 ready@13.1h]
+       machine=4 queue: [order=1002 op#40 ready@16.9h]
+       machine=5 queue: [empty]
+       machine=3: mach_free_slot=13.12h  earliest_ready=12.82h  worker_avail=8.00h  -> candidate_t=13.12h
+       machine=4: mach_free_slot=11.74h  earliest_ready=16.93h  worker_avail=11.74h  -> candidate_t=16.93h
+[SIM]   >> Selected machine=3  slot=0  earliest_start=13.12h
+         order=1001 op#30 due=22.0h prio=1.0 duration=3.46h ready@12.82h
+         order=1003 op#40 due=62.0h prio=9.0 duration=0.62h ready@13.12h
+[SIM]   Rule=SPT picked: order=1003 op#40
+[SIM]   Eligible workers for machine=3: ['6', '7']
+         worker=6  free@13.12h  shift=8.0-16.0  -> avail@13.12h
+         worker=7  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+[SIM]   >> Chosen worker: 7  available@8.00h
+[SIM]   SCHEDULE: order=1003 op#40 machine=3 worker=7
+                   tentative=13.12h  worker_free=8.00h
+                   START=13.12h  END=13.75h  duration=0.62h
+[SIM]   State update: machine=3 slot=0 now free@13.75h
+                     worker=7 now free@13.75h
+                     job_done_at[1003]=13.75h  next_op_idx=4/5
+[SIM]   ENQUEUE order=1003 op#50 -> machine=5  ready@13.75h  duration=0.62h
+       machine=1 queue: [empty]
+       machine=2 queue: [empty]
+       machine=3 queue: [order=1001 op#30 ready@12.8h]
+       machine=4 queue: [order=1002 op#40 ready@16.9h]
+       machine=5 queue: [order=1003 op#50 ready@13.7h]
+       machine=3: mach_free_slot=13.75h  earliest_ready=12.82h  worker_avail=13.12h  -> candidate_t=13.75h
+       machine=4: mach_free_slot=11.74h  earliest_ready=16.93h  worker_avail=11.74h  -> candidate_t=16.93h
+       machine=5: mach_free_slot=0.00h  earliest_ready=13.75h  worker_avail=8.00h  -> candidate_t=13.75h
+[SIM]   >> Selected machine=3  slot=0  earliest_start=13.75h
+         order=1001 op#30 due=22.0h prio=1.0 duration=3.46h ready@12.82h
+[SIM]   Rule=SPT picked: order=1001 op#30
+[SIM]   Eligible workers for machine=3: ['6', '7']
+         worker=6  free@13.12h  shift=8.0-16.0  -> avail@13.12h
+         worker=7  free@13.75h  shift=8.0-16.0  -> avail@13.75h
+[SIM]   >> Chosen worker: 6  available@13.12h
+[SIM]   SCHEDULE: order=1001 op#30 machine=3 worker=6
+                   tentative=13.75h  worker_free=13.12h
+                   START=13.75h  END=17.20h  duration=3.46h
+[SIM]   State update: machine=3 slot=0 now free@17.20h
+                     worker=6 now free@17.20h
+                     job_done_at[1001]=17.20h  next_op_idx=3/6
+[SIM]   ENQUEUE order=1001 op#40 -> machine=4  ready@17.20h  duration=0.77h
+       machine=1 queue: [empty]
+       machine=2 queue: [empty]
+       machine=3 queue: [empty]
+       machine=4 queue: [order=1002 op#40 ready@16.9h, order=1001 op#40 ready@17.2h]
+       machine=5 queue: [order=1003 op#50 ready@13.7h]
+       machine=4: mach_free_slot=11.74h  earliest_ready=16.93h  worker_avail=11.74h  -> candidate_t=16.93h
+       machine=5: mach_free_slot=0.00h  earliest_ready=13.75h  worker_avail=8.00h  -> candidate_t=13.75h
+[SIM]   >> Selected machine=5  slot=0  earliest_start=13.75h
+         order=1003 op#50 due=62.0h prio=9.0 duration=0.62h ready@13.75h
+[SIM]   Rule=SPT picked: order=1003 op#50
+[SIM]   Eligible workers for machine=5: ['8', '9', '10']
+         worker=8  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=9  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=10  free@11.74h  shift=8.0-16.0  -> avail@11.74h
+[SIM]   >> Chosen worker: 8  available@8.00h
+[SIM]   SCHEDULE: order=1003 op#50 machine=5 worker=8
+                   tentative=13.75h  worker_free=8.00h
+                   START=13.75h  END=14.37h  duration=0.62h
+[SIM]   State update: machine=5 slot=0 now free@14.37h
+                     worker=8 now free@14.37h
+                     job_done_at[1003]=14.37h  next_op_idx=5/5
+[SIM]   *** ORDER 1003 COMPLETE at 14.37h (due=62.00h) ***
+       machine=1 queue: [empty]
+       machine=2 queue: [empty]
+       machine=3 queue: [empty]
+       machine=4 queue: [order=1002 op#40 ready@16.9h, order=1001 op#40 ready@17.2h]
+       machine=5 queue: [empty]
+       machine=4: mach_free_slot=11.74h  earliest_ready=16.93h  worker_avail=11.74h  -> candidate_t=16.93h
+[SIM]   >> Selected machine=4  slot=0  earliest_start=16.93h
+         order=1002 op#40 due=38.0h prio=5.0 duration=0.62h ready@16.93h
+[SIM]   Rule=SPT picked: order=1002 op#40
+[SIM]   Eligible workers for machine=4: ['10']
+         worker=10  free@11.74h  shift=8.0-16.0  -> avail@11.74h
+[SIM]   >> Chosen worker: 10  available@11.74h
+[SIM]   SCHEDULE: order=1002 op#40 machine=4 worker=10
+                   tentative=32.00h  worker_free=11.74h
+                   START=32.00h  END=32.62h  duration=0.62h
+[SIM]   State update: machine=4 slot=0 now free@32.62h
+                     worker=10 now free@32.62h
+                     job_done_at[1002]=32.62h  next_op_idx=4/7
+[SIM]   ENQUEUE order=1002 op#50 -> machine=5  ready@32.62h  duration=0.62h
+       machine=1 queue: [empty]
+       machine=2 queue: [empty]
+       machine=3 queue: [empty]
+       machine=4 queue: [order=1001 op#40 ready@17.2h]
+       machine=5 queue: [order=1002 op#50 ready@32.6h]
+       machine=4: mach_free_slot=32.62h  earliest_ready=17.20h  worker_avail=32.62h  -> candidate_t=32.62h
+       machine=5: mach_free_slot=14.37h  earliest_ready=32.62h  worker_avail=8.00h  -> candidate_t=32.62h
+[SIM]   >> Selected machine=4  slot=0  earliest_start=32.62h
+         order=1001 op#40 due=22.0h prio=1.0 duration=0.77h ready@17.20h
+[SIM]   Rule=SPT picked: order=1001 op#40
+[SIM]   Eligible workers for machine=4: ['10']
+         worker=10  free@32.62h  shift=8.0-16.0  -> avail@32.62h
+[SIM]   >> Chosen worker: 10  available@32.62h
+[SIM]   SCHEDULE: order=1001 op#40 machine=4 worker=10
+                   tentative=32.62h  worker_free=32.62h
+                   START=32.62h  END=33.39h  duration=0.77h
+[SIM]   State update: machine=4 slot=0 now free@33.39h
+                     worker=10 now free@33.39h
+                     job_done_at[1001]=33.39h  next_op_idx=4/6
+[SIM]   ENQUEUE order=1001 op#50 -> machine=2  ready@33.39h  duration=0.68h
+       machine=1 queue: [empty]
+       machine=2 queue: [order=1001 op#50 ready@33.4h]
+       machine=3 queue: [empty]
+       machine=4 queue: [empty]
+       machine=5 queue: [order=1002 op#50 ready@32.6h]
+       machine=2: mach_free_slot=16.93h  earliest_ready=33.39h  worker_avail=11.11h  -> candidate_t=33.39h
+       machine=5: mach_free_slot=14.37h  earliest_ready=32.62h  worker_avail=8.00h  -> candidate_t=32.62h
+[SIM]   >> Selected machine=5  slot=0  earliest_start=32.62h
+         order=1002 op#50 due=38.0h prio=5.0 duration=0.62h ready@32.62h
+[SIM]   Rule=SPT picked: order=1002 op#50
+[SIM]   Eligible workers for machine=5: ['8', '9', '10']
+         worker=8  free@14.37h  shift=8.0-16.0  -> avail@14.37h
+         worker=9  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=10  free@33.39h  shift=8.0-16.0  -> avail@33.39h
+[SIM]   >> Chosen worker: 9  available@8.00h
+[SIM]   SCHEDULE: order=1002 op#50 machine=5 worker=9
+                   tentative=32.62h  worker_free=8.00h
+                   START=32.62h  END=33.25h  duration=0.62h
+[SIM]   State update: machine=5 slot=0 now free@33.25h
+                     worker=9 now free@33.25h
+                     job_done_at[1002]=33.25h  next_op_idx=5/7
+[SIM]   ENQUEUE order=1002 op#60 -> machine=3  ready@33.25h  duration=0.62h
+       machine=1 queue: [empty]
+       machine=2 queue: [order=1001 op#50 ready@33.4h]
+       machine=3 queue: [order=1002 op#60 ready@33.2h]
+       machine=4 queue: [empty]
+       machine=5 queue: [empty]
+       machine=2: mach_free_slot=16.93h  earliest_ready=33.39h  worker_avail=11.11h  -> candidate_t=33.39h
+       machine=3: mach_free_slot=17.20h  earliest_ready=33.25h  worker_avail=13.75h  -> candidate_t=33.25h
+[SIM]   >> Selected machine=3  slot=0  earliest_start=33.25h
+         order=1002 op#60 due=38.0h prio=5.0 duration=0.62h ready@33.25h
+[SIM]   Rule=SPT picked: order=1002 op#60
+[SIM]   Eligible workers for machine=3: ['6', '7']
+         worker=6  free@17.20h  shift=8.0-16.0  -> avail@32.00h
+         worker=7  free@13.75h  shift=8.0-16.0  -> avail@13.75h
+[SIM]   >> Chosen worker: 7  available@13.75h
+[SIM]   SCHEDULE: order=1002 op#60 machine=3 worker=7
+                   tentative=33.25h  worker_free=13.75h
+                   START=33.25h  END=33.88h  duration=0.62h
+[SIM]   State update: machine=3 slot=0 now free@33.88h
+                     worker=7 now free@33.88h
+                     job_done_at[1002]=33.88h  next_op_idx=6/7
+[SIM]   ENQUEUE order=1002 op#70 -> machine=5  ready@33.88h  duration=0.62h
+       machine=1 queue: [empty]
+       machine=2 queue: [order=1001 op#50 ready@33.4h]
+       machine=3 queue: [empty]
+       machine=4 queue: [empty]
+       machine=5 queue: [order=1002 op#70 ready@33.9h]
+       machine=2: mach_free_slot=16.93h  earliest_ready=33.39h  worker_avail=11.11h  -> candidate_t=33.39h
+       machine=5: mach_free_slot=33.25h  earliest_ready=33.88h  worker_avail=14.37h  -> candidate_t=33.88h
+[SIM]   >> Selected machine=2  slot=0  earliest_start=33.39h
+         order=1001 op#50 due=22.0h prio=1.0 duration=0.68h ready@33.39h
+[SIM]   Rule=SPT picked: order=1001 op#50
+[SIM]   Eligible workers for machine=2: ['1', '3', '4', '5', '7']
+         worker=1  free@13.12h  shift=8.0-16.0  -> avail@13.12h
+         worker=3  free@11.11h  shift=8.0-16.0  -> avail@11.11h
+         worker=4  free@12.82h  shift=8.0-16.0  -> avail@12.82h
+         worker=5  free@16.93h  shift=8.0-16.0  -> avail@32.00h
+         worker=7  free@33.88h  shift=8.0-16.0  -> avail@33.88h
+[SIM]   >> Chosen worker: 3  available@11.11h
+[SIM]   SCHEDULE: order=1001 op#50 machine=2 worker=3
+                   tentative=33.39h  worker_free=11.11h
+                   START=33.39h  END=34.08h  duration=0.68h
+[SIM]   State update: machine=2 slot=0 now free@34.08h
+                     worker=3 now free@34.08h
+                     job_done_at[1001]=34.08h  next_op_idx=5/6
+[SIM]   ENQUEUE order=1001 op#60 -> machine=5  ready@34.08h  duration=0.73h
+       machine=1 queue: [empty]
+       machine=2 queue: [empty]
+       machine=3 queue: [empty]
+       machine=4 queue: [empty]
+       machine=5 queue: [order=1002 op#70 ready@33.9h, order=1001 op#60 ready@34.1h]
+       machine=5: mach_free_slot=33.25h  earliest_ready=33.88h  worker_avail=14.37h  -> candidate_t=33.88h
+[SIM]   >> Selected machine=5  slot=0  earliest_start=33.88h
+         order=1002 op#70 due=38.0h prio=5.0 duration=0.62h ready@33.88h
+[SIM]   Rule=SPT picked: order=1002 op#70
+[SIM]   Eligible workers for machine=5: ['8', '9', '10']
+         worker=8  free@14.37h  shift=8.0-16.0  -> avail@14.37h
+         worker=9  free@33.25h  shift=8.0-16.0  -> avail@33.25h
+         worker=10  free@33.39h  shift=8.0-16.0  -> avail@33.39h
+[SIM]   >> Chosen worker: 8  available@14.37h
+[SIM]   SCHEDULE: order=1002 op#70 machine=5 worker=8
+                   tentative=33.88h  worker_free=14.37h
+                   START=33.88h  END=34.50h  duration=0.62h
+[SIM]   State update: machine=5 slot=0 now free@34.50h
+                     worker=8 now free@34.50h
+                     job_done_at[1002]=34.50h  next_op_idx=7/7
+[SIM]   *** ORDER 1002 COMPLETE at 34.50h (due=38.00h) ***
+       machine=1 queue: [empty]
+       machine=2 queue: [empty]
+       machine=3 queue: [empty]
+       machine=4 queue: [empty]
+       machine=5 queue: [order=1001 op#60 ready@34.1h]
+       machine=5: mach_free_slot=34.50h  earliest_ready=34.08h  worker_avail=33.25h  -> candidate_t=34.50h
+[SIM]   >> Selected machine=5  slot=0  earliest_start=34.50h
+         order=1001 op#60 due=22.0h prio=1.0 duration=0.73h ready@34.08h
+[SIM]   Rule=SPT picked: order=1001 op#60
+[SIM]   Eligible workers for machine=5: ['8', '9', '10']
+         worker=8  free@34.50h  shift=8.0-16.0  -> avail@34.50h
+         worker=9  free@33.25h  shift=8.0-16.0  -> avail@33.25h
+         worker=10  free@33.39h  shift=8.0-16.0  -> avail@33.39h
+[SIM]   >> Chosen worker: 9  available@33.25h
+[SIM]   SCHEDULE: order=1001 op#60 machine=5 worker=9
+                   tentative=34.50h  worker_free=33.25h
+                   START=34.50h  END=35.23h  duration=0.73h
+[SIM]   State update: machine=5 slot=0 now free@35.23h
+                     worker=9 now free@35.23h
+                     job_done_at[1001]=35.23h  next_op_idx=6/6
+[SIM]   *** ORDER 1001 COMPLETE at 35.23h (due=22.00h) ***
+
+[SIM] ── TWT Calculation ──
+       order=1003  finish=14.37h  due=62.00h  prio=9.0  weight=1.0  tardiness=0.00h  contrib=0.00  [on time]
+       order=1002  finish=34.50h  due=38.00h  prio=5.0  weight=5.0  tardiness=0.00h  contrib=0.00  [on time]
+       order=1001  finish=35.23h  due=22.00h  prio=1.0  weight=9.0  tardiness=13.23h  contrib=119.03  [LATE by 13.23h]
+[SIM] Total TWT = 119.0344h
+=================================================================
+
+
+=================================================================
+[SIM] Rule: WSPT
+[SIM] Orders: 3  Total ops: 18
+[SIM] Machines: [1, 2, 3, 4, 5]
+       machine=1  slots=1  workers=['1', '2']
+       machine=2  slots=1  workers=['1', '3', '4', '5', '7']
+       machine=3  slots=1  workers=['6', '7']
+       machine=4  slots=1  workers=['10']
+       machine=5  slots=1  workers=['8', '9', '10']
+[SIM] Job releases / due dates / priority:
+       order=1001  release=0.0h  due=22.0h  prio=1.0  ops=6
+       order=1002  release=0.0h  due=38.0h  prio=5.0  ops=7
+       order=1003  release=2.0h  due=62.0h  prio=9.0  ops=5
+=================================================================
+
+[SIM] Enqueuing first operation of each order:
+[SIM]   ENQUEUE order=1001 op#10 -> machine=1  ready@0.00h  duration=1.73h
+[SIM]   ENQUEUE order=1002 op#10 -> machine=1  ready@0.00h  duration=2.77h
+[SIM]   ENQUEUE order=1003 op#10 -> machine=2  ready@2.00h  duration=3.11h
+
+[SIM] Starting simulation loop (18 operations total)...
+       machine=1 queue: [order=1001 op#10 ready@0.0h, order=1002 op#10 ready@0.0h]
+       machine=2 queue: [order=1003 op#10 ready@2.0h]
+       machine=3 queue: [empty]
+       machine=4 queue: [empty]
+       machine=5 queue: [empty]
+       machine=1: mach_free_slot=0.00h  earliest_ready=0.00h  worker_avail=8.00h  -> candidate_t=8.00h
+       machine=2: mach_free_slot=0.00h  earliest_ready=2.00h  worker_avail=8.00h  -> candidate_t=8.00h
+[SIM]   >> Selected machine=1  slot=0  earliest_start=8.00h
+         order=1001 op#10 due=22.0h prio=1.0 duration=1.73h ready@0.00h
+         order=1002 op#10 due=38.0h prio=5.0 duration=2.77h ready@0.00h
+[SIM]   Rule=WSPT picked: order=1001 op#10
+[SIM]   Eligible workers for machine=1: ['1', '2']
+         worker=1  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=2  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+[SIM]   >> Chosen worker: 1  available@8.00h
+[SIM]   SCHEDULE: order=1001 op#10 machine=1 worker=1
+                   tentative=8.00h  worker_free=8.00h
+                   START=8.00h  END=9.73h  duration=1.73h
+[SIM]   State update: machine=1 slot=0 now free@9.73h
+                     worker=1 now free@9.73h
+                     job_done_at[1001]=9.73h  next_op_idx=1/6
+[SIM]   ENQUEUE order=1001 op#20 -> machine=2  ready@9.73h  duration=1.71h
+       machine=1 queue: [order=1002 op#10 ready@0.0h]
+       machine=2 queue: [order=1003 op#10 ready@2.0h, order=1001 op#20 ready@9.7h]
+       machine=3 queue: [empty]
+       machine=4 queue: [empty]
+       machine=5 queue: [empty]
+       machine=1: mach_free_slot=9.73h  earliest_ready=0.00h  worker_avail=8.00h  -> candidate_t=9.73h
+       machine=2: mach_free_slot=0.00h  earliest_ready=2.00h  worker_avail=8.00h  -> candidate_t=8.00h
+[SIM]   >> Selected machine=2  slot=0  earliest_start=8.00h
+         order=1003 op#10 due=62.0h prio=9.0 duration=3.11h ready@2.00h
+[SIM]   Rule=WSPT picked: order=1003 op#10
+[SIM]   Eligible workers for machine=2: ['1', '3', '4', '5', '7']
+         worker=1  free@9.73h  shift=8.0-16.0  -> avail@9.73h
+         worker=3  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=4  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=5  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=7  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+[SIM]   >> Chosen worker: 3  available@8.00h
+[SIM]   SCHEDULE: order=1003 op#10 machine=2 worker=3
+                   tentative=8.00h  worker_free=8.00h
+                   START=8.00h  END=11.11h  duration=3.11h
+[SIM]   State update: machine=2 slot=0 now free@11.11h
+                     worker=3 now free@11.11h
+                     job_done_at[1003]=11.11h  next_op_idx=1/5
+[SIM]   ENQUEUE order=1003 op#20 -> machine=4  ready@11.11h  duration=0.62h
+       machine=1 queue: [order=1002 op#10 ready@0.0h]
+       machine=2 queue: [order=1001 op#20 ready@9.7h]
+       machine=3 queue: [empty]
+       machine=4 queue: [order=1003 op#20 ready@11.1h]
+       machine=5 queue: [empty]
+       machine=1: mach_free_slot=9.73h  earliest_ready=0.00h  worker_avail=8.00h  -> candidate_t=9.73h
+       machine=2: mach_free_slot=11.11h  earliest_ready=9.73h  worker_avail=8.00h  -> candidate_t=11.11h
+       machine=4: mach_free_slot=0.00h  earliest_ready=11.11h  worker_avail=8.00h  -> candidate_t=11.11h
+[SIM]   >> Selected machine=1  slot=0  earliest_start=9.73h
+         order=1002 op#10 due=38.0h prio=5.0 duration=2.77h ready@0.00h
+[SIM]   Rule=WSPT picked: order=1002 op#10
+[SIM]   Eligible workers for machine=1: ['1', '2']
+         worker=1  free@9.73h  shift=8.0-16.0  -> avail@9.73h
+         worker=2  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+[SIM]   >> Chosen worker: 2  available@8.00h
+[SIM]   SCHEDULE: order=1002 op#10 machine=1 worker=2
+                   tentative=9.73h  worker_free=8.00h
+                   START=9.73h  END=12.50h  duration=2.77h
+[SIM]   State update: machine=1 slot=0 now free@12.50h
+                     worker=2 now free@12.50h
+                     job_done_at[1002]=12.50h  next_op_idx=1/7
+[SIM]   ENQUEUE order=1002 op#20 -> machine=3  ready@12.50h  duration=0.62h
+       machine=1 queue: [empty]
+       machine=2 queue: [order=1001 op#20 ready@9.7h]
+       machine=3 queue: [order=1002 op#20 ready@12.5h]
+       machine=4 queue: [order=1003 op#20 ready@11.1h]
+       machine=5 queue: [empty]
+       machine=2: mach_free_slot=11.11h  earliest_ready=9.73h  worker_avail=8.00h  -> candidate_t=11.11h
+       machine=3: mach_free_slot=0.00h  earliest_ready=12.50h  worker_avail=8.00h  -> candidate_t=12.50h
+       machine=4: mach_free_slot=0.00h  earliest_ready=11.11h  worker_avail=8.00h  -> candidate_t=11.11h
+[SIM]   >> Selected machine=2  slot=0  earliest_start=11.11h
+         order=1001 op#20 due=22.0h prio=1.0 duration=1.71h ready@9.73h
+[SIM]   Rule=WSPT picked: order=1001 op#20
+[SIM]   Eligible workers for machine=2: ['1', '3', '4', '5', '7']
+         worker=1  free@9.73h  shift=8.0-16.0  -> avail@9.73h
+         worker=3  free@11.11h  shift=8.0-16.0  -> avail@11.11h
+         worker=4  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=5  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=7  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+[SIM]   >> Chosen worker: 4  available@8.00h
+[SIM]   SCHEDULE: order=1001 op#20 machine=2 worker=4
+                   tentative=11.11h  worker_free=8.00h
+                   START=11.11h  END=12.82h  duration=1.71h
+[SIM]   State update: machine=2 slot=0 now free@12.82h
+                     worker=4 now free@12.82h
+                     job_done_at[1001]=12.82h  next_op_idx=2/6
+[SIM]   ENQUEUE order=1001 op#30 -> machine=3  ready@12.82h  duration=3.46h
+       machine=1 queue: [empty]
+       machine=2 queue: [empty]
+       machine=3 queue: [order=1002 op#20 ready@12.5h, order=1001 op#30 ready@12.8h]
+       machine=4 queue: [order=1003 op#20 ready@11.1h]
+       machine=5 queue: [empty]
+       machine=3: mach_free_slot=0.00h  earliest_ready=12.50h  worker_avail=8.00h  -> candidate_t=12.50h
+       machine=4: mach_free_slot=0.00h  earliest_ready=11.11h  worker_avail=8.00h  -> candidate_t=11.11h
+[SIM]   >> Selected machine=4  slot=0  earliest_start=11.11h
+         order=1003 op#20 due=62.0h prio=9.0 duration=0.62h ready@11.11h
+[SIM]   Rule=WSPT picked: order=1003 op#20
+[SIM]   Eligible workers for machine=4: ['10']
+         worker=10  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+[SIM]   >> Chosen worker: 10  available@8.00h
+[SIM]   SCHEDULE: order=1003 op#20 machine=4 worker=10
+                   tentative=11.11h  worker_free=8.00h
+                   START=11.11h  END=11.74h  duration=0.62h
+[SIM]   State update: machine=4 slot=0 now free@11.74h
+                     worker=10 now free@11.74h
+                     job_done_at[1003]=11.74h  next_op_idx=2/5
+[SIM]   ENQUEUE order=1003 op#30 -> machine=1  ready@11.74h  duration=0.62h
+       machine=1 queue: [order=1003 op#30 ready@11.7h]
+       machine=2 queue: [empty]
+       machine=3 queue: [order=1002 op#20 ready@12.5h, order=1001 op#30 ready@12.8h]
+       machine=4 queue: [empty]
+       machine=5 queue: [empty]
+       machine=1: mach_free_slot=12.50h  earliest_ready=11.74h  worker_avail=9.73h  -> candidate_t=12.50h
+       machine=3: mach_free_slot=0.00h  earliest_ready=12.50h  worker_avail=8.00h  -> candidate_t=12.50h
+[SIM]   >> Selected machine=1  slot=0  earliest_start=12.50h
+         order=1003 op#30 due=62.0h prio=9.0 duration=0.62h ready@11.74h
+[SIM]   Rule=WSPT picked: order=1003 op#30
+[SIM]   Eligible workers for machine=1: ['1', '2']
+         worker=1  free@9.73h  shift=8.0-16.0  -> avail@9.73h
+         worker=2  free@12.50h  shift=8.0-16.0  -> avail@12.50h
+[SIM]   >> Chosen worker: 1  available@9.73h
+[SIM]   SCHEDULE: order=1003 op#30 machine=1 worker=1
+                   tentative=12.50h  worker_free=9.73h
+                   START=12.50h  END=13.12h  duration=0.62h
+[SIM]   State update: machine=1 slot=0 now free@13.12h
+                     worker=1 now free@13.12h
+                     job_done_at[1003]=13.12h  next_op_idx=3/5
+[SIM]   ENQUEUE order=1003 op#40 -> machine=3  ready@13.12h  duration=0.62h
+       machine=1 queue: [empty]
+       machine=2 queue: [empty]
+       machine=3 queue: [order=1002 op#20 ready@12.5h, order=1001 op#30 ready@12.8h, order=1003 op#40 ready@13.1h]
+       machine=4 queue: [empty]
+       machine=5 queue: [empty]
+       machine=3: mach_free_slot=0.00h  earliest_ready=12.50h  worker_avail=8.00h  -> candidate_t=12.50h
+[SIM]   >> Selected machine=3  slot=0  earliest_start=12.50h
+         order=1002 op#20 due=38.0h prio=5.0 duration=0.62h ready@12.50h
+[SIM]   Rule=WSPT picked: order=1002 op#20
+[SIM]   Eligible workers for machine=3: ['6', '7']
+         worker=6  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=7  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+[SIM]   >> Chosen worker: 6  available@8.00h
+[SIM]   SCHEDULE: order=1002 op#20 machine=3 worker=6
+                   tentative=12.50h  worker_free=8.00h
+                   START=12.50h  END=13.12h  duration=0.62h
+[SIM]   State update: machine=3 slot=0 now free@13.12h
+                     worker=6 now free@13.12h
+                     job_done_at[1002]=13.12h  next_op_idx=2/7
+[SIM]   ENQUEUE order=1002 op#30 -> machine=2  ready@13.12h  duration=3.80h
+       machine=1 queue: [empty]
+       machine=2 queue: [order=1002 op#30 ready@13.1h]
+       machine=3 queue: [order=1001 op#30 ready@12.8h, order=1003 op#40 ready@13.1h]
+       machine=4 queue: [empty]
+       machine=5 queue: [empty]
+       machine=2: mach_free_slot=12.82h  earliest_ready=13.12h  worker_avail=8.00h  -> candidate_t=13.12h
+       machine=3: mach_free_slot=13.12h  earliest_ready=12.82h  worker_avail=8.00h  -> candidate_t=13.12h
+[SIM]   >> Selected machine=2  slot=0  earliest_start=13.12h
+         order=1002 op#30 due=38.0h prio=5.0 duration=3.80h ready@13.12h
+[SIM]   Rule=WSPT picked: order=1002 op#30
+[SIM]   Eligible workers for machine=2: ['1', '3', '4', '5', '7']
+         worker=1  free@13.12h  shift=8.0-16.0  -> avail@13.12h
+         worker=3  free@11.11h  shift=8.0-16.0  -> avail@11.11h
+         worker=4  free@12.82h  shift=8.0-16.0  -> avail@12.82h
+         worker=5  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=7  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+[SIM]   >> Chosen worker: 5  available@8.00h
+[SIM]   SCHEDULE: order=1002 op#30 machine=2 worker=5
+                   tentative=13.12h  worker_free=8.00h
+                   START=13.12h  END=16.93h  duration=3.80h
+[SIM]   State update: machine=2 slot=0 now free@16.93h
+                     worker=5 now free@16.93h
+                     job_done_at[1002]=16.93h  next_op_idx=3/7
+[SIM]   ENQUEUE order=1002 op#40 -> machine=4  ready@16.93h  duration=0.62h
+       machine=1 queue: [empty]
+       machine=2 queue: [empty]
+       machine=3 queue: [order=1001 op#30 ready@12.8h, order=1003 op#40 ready@13.1h]
+       machine=4 queue: [order=1002 op#40 ready@16.9h]
+       machine=5 queue: [empty]
+       machine=3: mach_free_slot=13.12h  earliest_ready=12.82h  worker_avail=8.00h  -> candidate_t=13.12h
+       machine=4: mach_free_slot=11.74h  earliest_ready=16.93h  worker_avail=11.74h  -> candidate_t=16.93h
+[SIM]   >> Selected machine=3  slot=0  earliest_start=13.12h
+         order=1001 op#30 due=22.0h prio=1.0 duration=3.46h ready@12.82h
+         order=1003 op#40 due=62.0h prio=9.0 duration=0.62h ready@13.12h
+[SIM]   Rule=WSPT picked: order=1001 op#30
+[SIM]   Eligible workers for machine=3: ['6', '7']
+         worker=6  free@13.12h  shift=8.0-16.0  -> avail@13.12h
+         worker=7  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+[SIM]   >> Chosen worker: 7  available@8.00h
+[SIM]   SCHEDULE: order=1001 op#30 machine=3 worker=7
+                   tentative=13.12h  worker_free=8.00h
+                   START=13.12h  END=16.58h  duration=3.46h
+[SIM]   State update: machine=3 slot=0 now free@16.58h
+                     worker=7 now free@16.58h
+                     job_done_at[1001]=16.58h  next_op_idx=3/6
+[SIM]   ENQUEUE order=1001 op#40 -> machine=4  ready@16.58h  duration=0.77h
+       machine=1 queue: [empty]
+       machine=2 queue: [empty]
+       machine=3 queue: [order=1003 op#40 ready@13.1h]
+       machine=4 queue: [order=1002 op#40 ready@16.9h, order=1001 op#40 ready@16.6h]
+       machine=5 queue: [empty]
+       machine=3: mach_free_slot=16.58h  earliest_ready=13.12h  worker_avail=13.12h  -> candidate_t=16.58h
+       machine=4: mach_free_slot=11.74h  earliest_ready=16.58h  worker_avail=11.74h  -> candidate_t=16.58h
+[SIM]   >> Selected machine=3  slot=0  earliest_start=16.58h
+         order=1003 op#40 due=62.0h prio=9.0 duration=0.62h ready@13.12h
+[SIM]   Rule=WSPT picked: order=1003 op#40
+[SIM]   Eligible workers for machine=3: ['6', '7']
+         worker=6  free@13.12h  shift=8.0-16.0  -> avail@13.12h
+         worker=7  free@16.58h  shift=8.0-16.0  -> avail@32.00h
+[SIM]   >> Chosen worker: 6  available@13.12h
+[SIM]   SCHEDULE: order=1003 op#40 machine=3 worker=6
+                   tentative=32.00h  worker_free=13.12h
+                   START=32.00h  END=32.62h  duration=0.62h
+[SIM]   State update: machine=3 slot=0 now free@32.62h
+                     worker=6 now free@32.62h
+                     job_done_at[1003]=32.62h  next_op_idx=4/5
+[SIM]   ENQUEUE order=1003 op#50 -> machine=5  ready@32.62h  duration=0.62h
+       machine=1 queue: [empty]
+       machine=2 queue: [empty]
+       machine=3 queue: [empty]
+       machine=4 queue: [order=1002 op#40 ready@16.9h, order=1001 op#40 ready@16.6h]
+       machine=5 queue: [order=1003 op#50 ready@32.6h]
+       machine=4: mach_free_slot=11.74h  earliest_ready=16.58h  worker_avail=11.74h  -> candidate_t=16.58h
+       machine=5: mach_free_slot=0.00h  earliest_ready=32.62h  worker_avail=8.00h  -> candidate_t=32.62h
+[SIM]   >> Selected machine=4  slot=0  earliest_start=16.58h
+         order=1001 op#40 due=22.0h prio=1.0 duration=0.77h ready@16.58h
+[SIM]   Rule=WSPT picked: order=1001 op#40
+[SIM]   Eligible workers for machine=4: ['10']
+         worker=10  free@11.74h  shift=8.0-16.0  -> avail@11.74h
+[SIM]   >> Chosen worker: 10  available@11.74h
+[SIM]   SCHEDULE: order=1001 op#40 machine=4 worker=10
+                   tentative=32.00h  worker_free=11.74h
+                   START=32.00h  END=32.77h  duration=0.77h
+[SIM]   State update: machine=4 slot=0 now free@32.77h
+                     worker=10 now free@32.77h
+                     job_done_at[1001]=32.77h  next_op_idx=4/6
+[SIM]   ENQUEUE order=1001 op#50 -> machine=2  ready@32.77h  duration=0.68h
+       machine=1 queue: [empty]
+       machine=2 queue: [order=1001 op#50 ready@32.8h]
+       machine=3 queue: [empty]
+       machine=4 queue: [order=1002 op#40 ready@16.9h]
+       machine=5 queue: [order=1003 op#50 ready@32.6h]
+       machine=2: mach_free_slot=16.93h  earliest_ready=32.77h  worker_avail=11.11h  -> candidate_t=32.77h
+       machine=4: mach_free_slot=32.77h  earliest_ready=16.93h  worker_avail=32.77h  -> candidate_t=32.77h
+       machine=5: mach_free_slot=0.00h  earliest_ready=32.62h  worker_avail=8.00h  -> candidate_t=32.62h
+[SIM]   >> Selected machine=5  slot=0  earliest_start=32.62h
+         order=1003 op#50 due=62.0h prio=9.0 duration=0.62h ready@32.62h
+[SIM]   Rule=WSPT picked: order=1003 op#50
+[SIM]   Eligible workers for machine=5: ['8', '9', '10']
+         worker=8  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=9  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=10  free@32.77h  shift=8.0-16.0  -> avail@32.77h
+[SIM]   >> Chosen worker: 8  available@8.00h
+[SIM]   SCHEDULE: order=1003 op#50 machine=5 worker=8
+                   tentative=32.62h  worker_free=8.00h
+                   START=32.62h  END=33.25h  duration=0.62h
+[SIM]   State update: machine=5 slot=0 now free@33.25h
+                     worker=8 now free@33.25h
+                     job_done_at[1003]=33.25h  next_op_idx=5/5
+[SIM]   *** ORDER 1003 COMPLETE at 33.25h (due=62.00h) ***
+       machine=1 queue: [empty]
+       machine=2 queue: [order=1001 op#50 ready@32.8h]
+       machine=3 queue: [empty]
+       machine=4 queue: [order=1002 op#40 ready@16.9h]
+       machine=5 queue: [empty]
+       machine=2: mach_free_slot=16.93h  earliest_ready=32.77h  worker_avail=11.11h  -> candidate_t=32.77h
+       machine=4: mach_free_slot=32.77h  earliest_ready=16.93h  worker_avail=32.77h  -> candidate_t=32.77h
+[SIM]   >> Selected machine=2  slot=0  earliest_start=32.77h
+         order=1001 op#50 due=22.0h prio=1.0 duration=0.68h ready@32.77h
+[SIM]   Rule=WSPT picked: order=1001 op#50
+[SIM]   Eligible workers for machine=2: ['1', '3', '4', '5', '7']
+         worker=1  free@13.12h  shift=8.0-16.0  -> avail@13.12h
+         worker=3  free@11.11h  shift=8.0-16.0  -> avail@11.11h
+         worker=4  free@12.82h  shift=8.0-16.0  -> avail@12.82h
+         worker=5  free@16.93h  shift=8.0-16.0  -> avail@32.00h
+         worker=7  free@16.58h  shift=8.0-16.0  -> avail@32.00h
+[SIM]   >> Chosen worker: 3  available@11.11h
+[SIM]   SCHEDULE: order=1001 op#50 machine=2 worker=3
+                   tentative=32.77h  worker_free=11.11h
+                   START=32.77h  END=33.45h  duration=0.68h
+[SIM]   State update: machine=2 slot=0 now free@33.45h
+                     worker=3 now free@33.45h
+                     job_done_at[1001]=33.45h  next_op_idx=5/6
+[SIM]   ENQUEUE order=1001 op#60 -> machine=5  ready@33.45h  duration=0.73h
+       machine=1 queue: [empty]
+       machine=2 queue: [empty]
+       machine=3 queue: [empty]
+       machine=4 queue: [order=1002 op#40 ready@16.9h]
+       machine=5 queue: [order=1001 op#60 ready@33.5h]
+       machine=4: mach_free_slot=32.77h  earliest_ready=16.93h  worker_avail=32.77h  -> candidate_t=32.77h
+       machine=5: mach_free_slot=33.25h  earliest_ready=33.45h  worker_avail=8.00h  -> candidate_t=33.45h
+[SIM]   >> Selected machine=4  slot=0  earliest_start=32.77h
+         order=1002 op#40 due=38.0h prio=5.0 duration=0.62h ready@16.93h
+[SIM]   Rule=WSPT picked: order=1002 op#40
+[SIM]   Eligible workers for machine=4: ['10']
+         worker=10  free@32.77h  shift=8.0-16.0  -> avail@32.77h
+[SIM]   >> Chosen worker: 10  available@32.77h
+[SIM]   SCHEDULE: order=1002 op#40 machine=4 worker=10
+                   tentative=32.77h  worker_free=32.77h
+                   START=32.77h  END=33.39h  duration=0.62h
+[SIM]   State update: machine=4 slot=0 now free@33.39h
+                     worker=10 now free@33.39h
+                     job_done_at[1002]=33.39h  next_op_idx=4/7
+[SIM]   ENQUEUE order=1002 op#50 -> machine=5  ready@33.39h  duration=0.62h
+       machine=1 queue: [empty]
+       machine=2 queue: [empty]
+       machine=3 queue: [empty]
+       machine=4 queue: [empty]
+       machine=5 queue: [order=1001 op#60 ready@33.5h, order=1002 op#50 ready@33.4h]
+       machine=5: mach_free_slot=33.25h  earliest_ready=33.39h  worker_avail=8.00h  -> candidate_t=33.39h
+[SIM]   >> Selected machine=5  slot=0  earliest_start=33.39h
+         order=1002 op#50 due=38.0h prio=5.0 duration=0.62h ready@33.39h
+[SIM]   Rule=WSPT picked: order=1002 op#50
+[SIM]   Eligible workers for machine=5: ['8', '9', '10']
+         worker=8  free@33.25h  shift=8.0-16.0  -> avail@33.25h
+         worker=9  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=10  free@33.39h  shift=8.0-16.0  -> avail@33.39h
+[SIM]   >> Chosen worker: 9  available@8.00h
+[SIM]   SCHEDULE: order=1002 op#50 machine=5 worker=9
+                   tentative=33.39h  worker_free=8.00h
+                   START=33.39h  END=34.02h  duration=0.62h
+[SIM]   State update: machine=5 slot=0 now free@34.02h
+                     worker=9 now free@34.02h
+                     job_done_at[1002]=34.02h  next_op_idx=5/7
+[SIM]   ENQUEUE order=1002 op#60 -> machine=3  ready@34.02h  duration=0.62h
+       machine=1 queue: [empty]
+       machine=2 queue: [empty]
+       machine=3 queue: [order=1002 op#60 ready@34.0h]
+       machine=4 queue: [empty]
+       machine=5 queue: [order=1001 op#60 ready@33.5h]
+       machine=3: mach_free_slot=32.62h  earliest_ready=34.02h  worker_avail=32.00h  -> candidate_t=34.02h
+       machine=5: mach_free_slot=34.02h  earliest_ready=33.45h  worker_avail=33.25h  -> candidate_t=34.02h
+[SIM]   >> Selected machine=3  slot=0  earliest_start=34.02h
+         order=1002 op#60 due=38.0h prio=5.0 duration=0.62h ready@34.02h
+[SIM]   Rule=WSPT picked: order=1002 op#60
+[SIM]   Eligible workers for machine=3: ['6', '7']
+         worker=6  free@32.62h  shift=8.0-16.0  -> avail@32.62h
+         worker=7  free@16.58h  shift=8.0-16.0  -> avail@32.00h
+[SIM]   >> Chosen worker: 7  available@32.00h
+[SIM]   SCHEDULE: order=1002 op#60 machine=3 worker=7
+                   tentative=34.02h  worker_free=32.00h
+                   START=34.02h  END=34.64h  duration=0.62h
+[SIM]   State update: machine=3 slot=0 now free@34.64h
+                     worker=7 now free@34.64h
+                     job_done_at[1002]=34.64h  next_op_idx=6/7
+[SIM]   ENQUEUE order=1002 op#70 -> machine=5  ready@34.64h  duration=0.62h
+       machine=1 queue: [empty]
+       machine=2 queue: [empty]
+       machine=3 queue: [empty]
+       machine=4 queue: [empty]
+       machine=5 queue: [order=1001 op#60 ready@33.5h, order=1002 op#70 ready@34.6h]
+       machine=5: mach_free_slot=34.02h  earliest_ready=33.45h  worker_avail=33.25h  -> candidate_t=34.02h
+[SIM]   >> Selected machine=5  slot=0  earliest_start=34.02h
+         order=1001 op#60 due=22.0h prio=1.0 duration=0.73h ready@33.45h
+[SIM]   Rule=WSPT picked: order=1001 op#60
+[SIM]   Eligible workers for machine=5: ['8', '9', '10']
+         worker=8  free@33.25h  shift=8.0-16.0  -> avail@33.25h
+         worker=9  free@34.02h  shift=8.0-16.0  -> avail@34.02h
+         worker=10  free@33.39h  shift=8.0-16.0  -> avail@33.39h
+[SIM]   >> Chosen worker: 8  available@33.25h
+[SIM]   SCHEDULE: order=1001 op#60 machine=5 worker=8
+                   tentative=34.02h  worker_free=33.25h
+                   START=34.02h  END=34.74h  duration=0.73h
+[SIM]   State update: machine=5 slot=0 now free@34.74h
+                     worker=8 now free@34.74h
+                     job_done_at[1001]=34.74h  next_op_idx=6/6
+[SIM]   *** ORDER 1001 COMPLETE at 34.74h (due=22.00h) ***
+       machine=1 queue: [empty]
+       machine=2 queue: [empty]
+       machine=3 queue: [empty]
+       machine=4 queue: [empty]
+       machine=5 queue: [order=1002 op#70 ready@34.6h]
+       machine=5: mach_free_slot=34.74h  earliest_ready=34.64h  worker_avail=33.39h  -> candidate_t=34.74h
+[SIM]   >> Selected machine=5  slot=0  earliest_start=34.74h
+         order=1002 op#70 due=38.0h prio=5.0 duration=0.62h ready@34.64h
+[SIM]   Rule=WSPT picked: order=1002 op#70
+[SIM]   Eligible workers for machine=5: ['8', '9', '10']
+         worker=8  free@34.74h  shift=8.0-16.0  -> avail@34.74h
+         worker=9  free@34.02h  shift=8.0-16.0  -> avail@34.02h
+         worker=10  free@33.39h  shift=8.0-16.0  -> avail@33.39h
+[SIM]   >> Chosen worker: 10  available@33.39h
+[SIM]   SCHEDULE: order=1002 op#70 machine=5 worker=10
+                   tentative=34.74h  worker_free=33.39h
+                   START=34.74h  END=35.37h  duration=0.62h
+[SIM]   State update: machine=5 slot=0 now free@35.37h
+                     worker=10 now free@35.37h
+                     job_done_at[1002]=35.37h  next_op_idx=7/7
+[SIM]   *** ORDER 1002 COMPLETE at 35.37h (due=38.00h) ***
+
+[SIM] ── TWT Calculation ──
+       order=1003  finish=33.25h  due=62.00h  prio=9.0  weight=1.0  tardiness=0.00h  contrib=0.00  [on time]
+       order=1001  finish=34.74h  due=22.00h  prio=1.0  weight=9.0  tardiness=12.74h  contrib=114.70  [LATE by 12.74h]
+       order=1002  finish=35.37h  due=38.00h  prio=5.0  weight=5.0  tardiness=0.00h  contrib=0.00  [on time]
+[SIM] Total TWT = 114.7031h
+=================================================================
+
+
+=================================================================
+[SIM] Rule: PRIO
+[SIM] Orders: 3  Total ops: 18
+[SIM] Machines: [1, 2, 3, 4, 5]
+       machine=1  slots=1  workers=['1', '2']
+       machine=2  slots=1  workers=['1', '3', '4', '5', '7']
+       machine=3  slots=1  workers=['6', '7']
+       machine=4  slots=1  workers=['10']
+       machine=5  slots=1  workers=['8', '9', '10']
+[SIM] Job releases / due dates / priority:
+       order=1001  release=0.0h  due=22.0h  prio=1.0  ops=6
+       order=1002  release=0.0h  due=38.0h  prio=5.0  ops=7
+       order=1003  release=2.0h  due=62.0h  prio=9.0  ops=5
+=================================================================
+
+[SIM] Enqueuing first operation of each order:
+[SIM]   ENQUEUE order=1001 op#10 -> machine=1  ready@0.00h  duration=1.73h
+[SIM]   ENQUEUE order=1002 op#10 -> machine=1  ready@0.00h  duration=2.77h
+[SIM]   ENQUEUE order=1003 op#10 -> machine=2  ready@2.00h  duration=3.11h
+
+[SIM] Starting simulation loop (18 operations total)...
+       machine=1 queue: [order=1001 op#10 ready@0.0h, order=1002 op#10 ready@0.0h]
+       machine=2 queue: [order=1003 op#10 ready@2.0h]
+       machine=3 queue: [empty]
+       machine=4 queue: [empty]
+       machine=5 queue: [empty]
+       machine=1: mach_free_slot=0.00h  earliest_ready=0.00h  worker_avail=8.00h  -> candidate_t=8.00h
+       machine=2: mach_free_slot=0.00h  earliest_ready=2.00h  worker_avail=8.00h  -> candidate_t=8.00h
+[SIM]   >> Selected machine=1  slot=0  earliest_start=8.00h
+         order=1001 op#10 due=22.0h prio=1.0 duration=1.73h ready@0.00h
+         order=1002 op#10 due=38.0h prio=5.0 duration=2.77h ready@0.00h
+[SIM]   Rule=PRIO picked: order=1001 op#10
+[SIM]   Eligible workers for machine=1: ['1', '2']
+         worker=1  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=2  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+[SIM]   >> Chosen worker: 1  available@8.00h
+[SIM]   SCHEDULE: order=1001 op#10 machine=1 worker=1
+                   tentative=8.00h  worker_free=8.00h
+                   START=8.00h  END=9.73h  duration=1.73h
+[SIM]   State update: machine=1 slot=0 now free@9.73h
+                     worker=1 now free@9.73h
+                     job_done_at[1001]=9.73h  next_op_idx=1/6
+[SIM]   ENQUEUE order=1001 op#20 -> machine=2  ready@9.73h  duration=1.71h
+       machine=1 queue: [order=1002 op#10 ready@0.0h]
+       machine=2 queue: [order=1003 op#10 ready@2.0h, order=1001 op#20 ready@9.7h]
+       machine=3 queue: [empty]
+       machine=4 queue: [empty]
+       machine=5 queue: [empty]
+       machine=1: mach_free_slot=9.73h  earliest_ready=0.00h  worker_avail=8.00h  -> candidate_t=9.73h
+       machine=2: mach_free_slot=0.00h  earliest_ready=2.00h  worker_avail=8.00h  -> candidate_t=8.00h
+[SIM]   >> Selected machine=2  slot=0  earliest_start=8.00h
+         order=1003 op#10 due=62.0h prio=9.0 duration=3.11h ready@2.00h
+[SIM]   Rule=PRIO picked: order=1003 op#10
+[SIM]   Eligible workers for machine=2: ['1', '3', '4', '5', '7']
+         worker=1  free@9.73h  shift=8.0-16.0  -> avail@9.73h
+         worker=3  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=4  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=5  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=7  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+[SIM]   >> Chosen worker: 3  available@8.00h
+[SIM]   SCHEDULE: order=1003 op#10 machine=2 worker=3
+                   tentative=8.00h  worker_free=8.00h
+                   START=8.00h  END=11.11h  duration=3.11h
+[SIM]   State update: machine=2 slot=0 now free@11.11h
+                     worker=3 now free@11.11h
+                     job_done_at[1003]=11.11h  next_op_idx=1/5
+[SIM]   ENQUEUE order=1003 op#20 -> machine=4  ready@11.11h  duration=0.62h
+       machine=1 queue: [order=1002 op#10 ready@0.0h]
+       machine=2 queue: [order=1001 op#20 ready@9.7h]
+       machine=3 queue: [empty]
+       machine=4 queue: [order=1003 op#20 ready@11.1h]
+       machine=5 queue: [empty]
+       machine=1: mach_free_slot=9.73h  earliest_ready=0.00h  worker_avail=8.00h  -> candidate_t=9.73h
+       machine=2: mach_free_slot=11.11h  earliest_ready=9.73h  worker_avail=8.00h  -> candidate_t=11.11h
+       machine=4: mach_free_slot=0.00h  earliest_ready=11.11h  worker_avail=8.00h  -> candidate_t=11.11h
+[SIM]   >> Selected machine=1  slot=0  earliest_start=9.73h
+         order=1002 op#10 due=38.0h prio=5.0 duration=2.77h ready@0.00h
+[SIM]   Rule=PRIO picked: order=1002 op#10
+[SIM]   Eligible workers for machine=1: ['1', '2']
+         worker=1  free@9.73h  shift=8.0-16.0  -> avail@9.73h
+         worker=2  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+[SIM]   >> Chosen worker: 2  available@8.00h
+[SIM]   SCHEDULE: order=1002 op#10 machine=1 worker=2
+                   tentative=9.73h  worker_free=8.00h
+                   START=9.73h  END=12.50h  duration=2.77h
+[SIM]   State update: machine=1 slot=0 now free@12.50h
+                     worker=2 now free@12.50h
+                     job_done_at[1002]=12.50h  next_op_idx=1/7
+[SIM]   ENQUEUE order=1002 op#20 -> machine=3  ready@12.50h  duration=0.62h
+       machine=1 queue: [empty]
+       machine=2 queue: [order=1001 op#20 ready@9.7h]
+       machine=3 queue: [order=1002 op#20 ready@12.5h]
+       machine=4 queue: [order=1003 op#20 ready@11.1h]
+       machine=5 queue: [empty]
+       machine=2: mach_free_slot=11.11h  earliest_ready=9.73h  worker_avail=8.00h  -> candidate_t=11.11h
+       machine=3: mach_free_slot=0.00h  earliest_ready=12.50h  worker_avail=8.00h  -> candidate_t=12.50h
+       machine=4: mach_free_slot=0.00h  earliest_ready=11.11h  worker_avail=8.00h  -> candidate_t=11.11h
+[SIM]   >> Selected machine=2  slot=0  earliest_start=11.11h
+         order=1001 op#20 due=22.0h prio=1.0 duration=1.71h ready@9.73h
+[SIM]   Rule=PRIO picked: order=1001 op#20
+[SIM]   Eligible workers for machine=2: ['1', '3', '4', '5', '7']
+         worker=1  free@9.73h  shift=8.0-16.0  -> avail@9.73h
+         worker=3  free@11.11h  shift=8.0-16.0  -> avail@11.11h
+         worker=4  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=5  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=7  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+[SIM]   >> Chosen worker: 4  available@8.00h
+[SIM]   SCHEDULE: order=1001 op#20 machine=2 worker=4
+                   tentative=11.11h  worker_free=8.00h
+                   START=11.11h  END=12.82h  duration=1.71h
+[SIM]   State update: machine=2 slot=0 now free@12.82h
+                     worker=4 now free@12.82h
+                     job_done_at[1001]=12.82h  next_op_idx=2/6
+[SIM]   ENQUEUE order=1001 op#30 -> machine=3  ready@12.82h  duration=3.46h
+       machine=1 queue: [empty]
+       machine=2 queue: [empty]
+       machine=3 queue: [order=1002 op#20 ready@12.5h, order=1001 op#30 ready@12.8h]
+       machine=4 queue: [order=1003 op#20 ready@11.1h]
+       machine=5 queue: [empty]
+       machine=3: mach_free_slot=0.00h  earliest_ready=12.50h  worker_avail=8.00h  -> candidate_t=12.50h
+       machine=4: mach_free_slot=0.00h  earliest_ready=11.11h  worker_avail=8.00h  -> candidate_t=11.11h
+[SIM]   >> Selected machine=4  slot=0  earliest_start=11.11h
+         order=1003 op#20 due=62.0h prio=9.0 duration=0.62h ready@11.11h
+[SIM]   Rule=PRIO picked: order=1003 op#20
+[SIM]   Eligible workers for machine=4: ['10']
+         worker=10  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+[SIM]   >> Chosen worker: 10  available@8.00h
+[SIM]   SCHEDULE: order=1003 op#20 machine=4 worker=10
+                   tentative=11.11h  worker_free=8.00h
+                   START=11.11h  END=11.74h  duration=0.62h
+[SIM]   State update: machine=4 slot=0 now free@11.74h
+                     worker=10 now free@11.74h
+                     job_done_at[1003]=11.74h  next_op_idx=2/5
+[SIM]   ENQUEUE order=1003 op#30 -> machine=1  ready@11.74h  duration=0.62h
+       machine=1 queue: [order=1003 op#30 ready@11.7h]
+       machine=2 queue: [empty]
+       machine=3 queue: [order=1002 op#20 ready@12.5h, order=1001 op#30 ready@12.8h]
+       machine=4 queue: [empty]
+       machine=5 queue: [empty]
+       machine=1: mach_free_slot=12.50h  earliest_ready=11.74h  worker_avail=9.73h  -> candidate_t=12.50h
+       machine=3: mach_free_slot=0.00h  earliest_ready=12.50h  worker_avail=8.00h  -> candidate_t=12.50h
+[SIM]   >> Selected machine=1  slot=0  earliest_start=12.50h
+         order=1003 op#30 due=62.0h prio=9.0 duration=0.62h ready@11.74h
+[SIM]   Rule=PRIO picked: order=1003 op#30
+[SIM]   Eligible workers for machine=1: ['1', '2']
+         worker=1  free@9.73h  shift=8.0-16.0  -> avail@9.73h
+         worker=2  free@12.50h  shift=8.0-16.0  -> avail@12.50h
+[SIM]   >> Chosen worker: 1  available@9.73h
+[SIM]   SCHEDULE: order=1003 op#30 machine=1 worker=1
+                   tentative=12.50h  worker_free=9.73h
+                   START=12.50h  END=13.12h  duration=0.62h
+[SIM]   State update: machine=1 slot=0 now free@13.12h
+                     worker=1 now free@13.12h
+                     job_done_at[1003]=13.12h  next_op_idx=3/5
+[SIM]   ENQUEUE order=1003 op#40 -> machine=3  ready@13.12h  duration=0.62h
+       machine=1 queue: [empty]
+       machine=2 queue: [empty]
+       machine=3 queue: [order=1002 op#20 ready@12.5h, order=1001 op#30 ready@12.8h, order=1003 op#40 ready@13.1h]
+       machine=4 queue: [empty]
+       machine=5 queue: [empty]
+       machine=3: mach_free_slot=0.00h  earliest_ready=12.50h  worker_avail=8.00h  -> candidate_t=12.50h
+[SIM]   >> Selected machine=3  slot=0  earliest_start=12.50h
+         order=1002 op#20 due=38.0h prio=5.0 duration=0.62h ready@12.50h
+[SIM]   Rule=PRIO picked: order=1002 op#20
+[SIM]   Eligible workers for machine=3: ['6', '7']
+         worker=6  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=7  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+[SIM]   >> Chosen worker: 6  available@8.00h
+[SIM]   SCHEDULE: order=1002 op#20 machine=3 worker=6
+                   tentative=12.50h  worker_free=8.00h
+                   START=12.50h  END=13.12h  duration=0.62h
+[SIM]   State update: machine=3 slot=0 now free@13.12h
+                     worker=6 now free@13.12h
+                     job_done_at[1002]=13.12h  next_op_idx=2/7
+[SIM]   ENQUEUE order=1002 op#30 -> machine=2  ready@13.12h  duration=3.80h
+       machine=1 queue: [empty]
+       machine=2 queue: [order=1002 op#30 ready@13.1h]
+       machine=3 queue: [order=1001 op#30 ready@12.8h, order=1003 op#40 ready@13.1h]
+       machine=4 queue: [empty]
+       machine=5 queue: [empty]
+       machine=2: mach_free_slot=12.82h  earliest_ready=13.12h  worker_avail=8.00h  -> candidate_t=13.12h
+       machine=3: mach_free_slot=13.12h  earliest_ready=12.82h  worker_avail=8.00h  -> candidate_t=13.12h
+[SIM]   >> Selected machine=2  slot=0  earliest_start=13.12h
+         order=1002 op#30 due=38.0h prio=5.0 duration=3.80h ready@13.12h
+[SIM]   Rule=PRIO picked: order=1002 op#30
+[SIM]   Eligible workers for machine=2: ['1', '3', '4', '5', '7']
+         worker=1  free@13.12h  shift=8.0-16.0  -> avail@13.12h
+         worker=3  free@11.11h  shift=8.0-16.0  -> avail@11.11h
+         worker=4  free@12.82h  shift=8.0-16.0  -> avail@12.82h
+         worker=5  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=7  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+[SIM]   >> Chosen worker: 5  available@8.00h
+[SIM]   SCHEDULE: order=1002 op#30 machine=2 worker=5
+                   tentative=13.12h  worker_free=8.00h
+                   START=13.12h  END=16.93h  duration=3.80h
+[SIM]   State update: machine=2 slot=0 now free@16.93h
+                     worker=5 now free@16.93h
+                     job_done_at[1002]=16.93h  next_op_idx=3/7
+[SIM]   ENQUEUE order=1002 op#40 -> machine=4  ready@16.93h  duration=0.62h
+       machine=1 queue: [empty]
+       machine=2 queue: [empty]
+       machine=3 queue: [order=1001 op#30 ready@12.8h, order=1003 op#40 ready@13.1h]
+       machine=4 queue: [order=1002 op#40 ready@16.9h]
+       machine=5 queue: [empty]
+       machine=3: mach_free_slot=13.12h  earliest_ready=12.82h  worker_avail=8.00h  -> candidate_t=13.12h
+       machine=4: mach_free_slot=11.74h  earliest_ready=16.93h  worker_avail=11.74h  -> candidate_t=16.93h
+[SIM]   >> Selected machine=3  slot=0  earliest_start=13.12h
+         order=1001 op#30 due=22.0h prio=1.0 duration=3.46h ready@12.82h
+         order=1003 op#40 due=62.0h prio=9.0 duration=0.62h ready@13.12h
+[SIM]   Rule=PRIO picked: order=1001 op#30
+[SIM]   Eligible workers for machine=3: ['6', '7']
+         worker=6  free@13.12h  shift=8.0-16.0  -> avail@13.12h
+         worker=7  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+[SIM]   >> Chosen worker: 7  available@8.00h
+[SIM]   SCHEDULE: order=1001 op#30 machine=3 worker=7
+                   tentative=13.12h  worker_free=8.00h
+                   START=13.12h  END=16.58h  duration=3.46h
+[SIM]   State update: machine=3 slot=0 now free@16.58h
+                     worker=7 now free@16.58h
+                     job_done_at[1001]=16.58h  next_op_idx=3/6
+[SIM]   ENQUEUE order=1001 op#40 -> machine=4  ready@16.58h  duration=0.77h
+       machine=1 queue: [empty]
+       machine=2 queue: [empty]
+       machine=3 queue: [order=1003 op#40 ready@13.1h]
+       machine=4 queue: [order=1002 op#40 ready@16.9h, order=1001 op#40 ready@16.6h]
+       machine=5 queue: [empty]
+       machine=3: mach_free_slot=16.58h  earliest_ready=13.12h  worker_avail=13.12h  -> candidate_t=16.58h
+       machine=4: mach_free_slot=11.74h  earliest_ready=16.58h  worker_avail=11.74h  -> candidate_t=16.58h
+[SIM]   >> Selected machine=3  slot=0  earliest_start=16.58h
+         order=1003 op#40 due=62.0h prio=9.0 duration=0.62h ready@13.12h
+[SIM]   Rule=PRIO picked: order=1003 op#40
+[SIM]   Eligible workers for machine=3: ['6', '7']
+         worker=6  free@13.12h  shift=8.0-16.0  -> avail@13.12h
+         worker=7  free@16.58h  shift=8.0-16.0  -> avail@32.00h
+[SIM]   >> Chosen worker: 6  available@13.12h
+[SIM]   SCHEDULE: order=1003 op#40 machine=3 worker=6
+                   tentative=32.00h  worker_free=13.12h
+                   START=32.00h  END=32.62h  duration=0.62h
+[SIM]   State update: machine=3 slot=0 now free@32.62h
+                     worker=6 now free@32.62h
+                     job_done_at[1003]=32.62h  next_op_idx=4/5
+[SIM]   ENQUEUE order=1003 op#50 -> machine=5  ready@32.62h  duration=0.62h
+       machine=1 queue: [empty]
+       machine=2 queue: [empty]
+       machine=3 queue: [empty]
+       machine=4 queue: [order=1002 op#40 ready@16.9h, order=1001 op#40 ready@16.6h]
+       machine=5 queue: [order=1003 op#50 ready@32.6h]
+       machine=4: mach_free_slot=11.74h  earliest_ready=16.58h  worker_avail=11.74h  -> candidate_t=16.58h
+       machine=5: mach_free_slot=0.00h  earliest_ready=32.62h  worker_avail=8.00h  -> candidate_t=32.62h
+[SIM]   >> Selected machine=4  slot=0  earliest_start=16.58h
+         order=1001 op#40 due=22.0h prio=1.0 duration=0.77h ready@16.58h
+[SIM]   Rule=PRIO picked: order=1001 op#40
+[SIM]   Eligible workers for machine=4: ['10']
+         worker=10  free@11.74h  shift=8.0-16.0  -> avail@11.74h
+[SIM]   >> Chosen worker: 10  available@11.74h
+[SIM]   SCHEDULE: order=1001 op#40 machine=4 worker=10
+                   tentative=32.00h  worker_free=11.74h
+                   START=32.00h  END=32.77h  duration=0.77h
+[SIM]   State update: machine=4 slot=0 now free@32.77h
+                     worker=10 now free@32.77h
+                     job_done_at[1001]=32.77h  next_op_idx=4/6
+[SIM]   ENQUEUE order=1001 op#50 -> machine=2  ready@32.77h  duration=0.68h
+       machine=1 queue: [empty]
+       machine=2 queue: [order=1001 op#50 ready@32.8h]
+       machine=3 queue: [empty]
+       machine=4 queue: [order=1002 op#40 ready@16.9h]
+       machine=5 queue: [order=1003 op#50 ready@32.6h]
+       machine=2: mach_free_slot=16.93h  earliest_ready=32.77h  worker_avail=11.11h  -> candidate_t=32.77h
+       machine=4: mach_free_slot=32.77h  earliest_ready=16.93h  worker_avail=32.77h  -> candidate_t=32.77h
+       machine=5: mach_free_slot=0.00h  earliest_ready=32.62h  worker_avail=8.00h  -> candidate_t=32.62h
+[SIM]   >> Selected machine=5  slot=0  earliest_start=32.62h
+         order=1003 op#50 due=62.0h prio=9.0 duration=0.62h ready@32.62h
+[SIM]   Rule=PRIO picked: order=1003 op#50
+[SIM]   Eligible workers for machine=5: ['8', '9', '10']
+         worker=8  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=9  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=10  free@32.77h  shift=8.0-16.0  -> avail@32.77h
+[SIM]   >> Chosen worker: 8  available@8.00h
+[SIM]   SCHEDULE: order=1003 op#50 machine=5 worker=8
+                   tentative=32.62h  worker_free=8.00h
+                   START=32.62h  END=33.25h  duration=0.62h
+[SIM]   State update: machine=5 slot=0 now free@33.25h
+                     worker=8 now free@33.25h
+                     job_done_at[1003]=33.25h  next_op_idx=5/5
+[SIM]   *** ORDER 1003 COMPLETE at 33.25h (due=62.00h) ***
+       machine=1 queue: [empty]
+       machine=2 queue: [order=1001 op#50 ready@32.8h]
+       machine=3 queue: [empty]
+       machine=4 queue: [order=1002 op#40 ready@16.9h]
+       machine=5 queue: [empty]
+       machine=2: mach_free_slot=16.93h  earliest_ready=32.77h  worker_avail=11.11h  -> candidate_t=32.77h
+       machine=4: mach_free_slot=32.77h  earliest_ready=16.93h  worker_avail=32.77h  -> candidate_t=32.77h
+[SIM]   >> Selected machine=2  slot=0  earliest_start=32.77h
+         order=1001 op#50 due=22.0h prio=1.0 duration=0.68h ready@32.77h
+[SIM]   Rule=PRIO picked: order=1001 op#50
+[SIM]   Eligible workers for machine=2: ['1', '3', '4', '5', '7']
+         worker=1  free@13.12h  shift=8.0-16.0  -> avail@13.12h
+         worker=3  free@11.11h  shift=8.0-16.0  -> avail@11.11h
+         worker=4  free@12.82h  shift=8.0-16.0  -> avail@12.82h
+         worker=5  free@16.93h  shift=8.0-16.0  -> avail@32.00h
+         worker=7  free@16.58h  shift=8.0-16.0  -> avail@32.00h
+[SIM]   >> Chosen worker: 3  available@11.11h
+[SIM]   SCHEDULE: order=1001 op#50 machine=2 worker=3
+                   tentative=32.77h  worker_free=11.11h
+                   START=32.77h  END=33.45h  duration=0.68h
+[SIM]   State update: machine=2 slot=0 now free@33.45h
+                     worker=3 now free@33.45h
+                     job_done_at[1001]=33.45h  next_op_idx=5/6
+[SIM]   ENQUEUE order=1001 op#60 -> machine=5  ready@33.45h  duration=0.73h
+       machine=1 queue: [empty]
+       machine=2 queue: [empty]
+       machine=3 queue: [empty]
+       machine=4 queue: [order=1002 op#40 ready@16.9h]
+       machine=5 queue: [order=1001 op#60 ready@33.5h]
+       machine=4: mach_free_slot=32.77h  earliest_ready=16.93h  worker_avail=32.77h  -> candidate_t=32.77h
+       machine=5: mach_free_slot=33.25h  earliest_ready=33.45h  worker_avail=8.00h  -> candidate_t=33.45h
+[SIM]   >> Selected machine=4  slot=0  earliest_start=32.77h
+         order=1002 op#40 due=38.0h prio=5.0 duration=0.62h ready@16.93h
+[SIM]   Rule=PRIO picked: order=1002 op#40
+[SIM]   Eligible workers for machine=4: ['10']
+         worker=10  free@32.77h  shift=8.0-16.0  -> avail@32.77h
+[SIM]   >> Chosen worker: 10  available@32.77h
+[SIM]   SCHEDULE: order=1002 op#40 machine=4 worker=10
+                   tentative=32.77h  worker_free=32.77h
+                   START=32.77h  END=33.39h  duration=0.62h
+[SIM]   State update: machine=4 slot=0 now free@33.39h
+                     worker=10 now free@33.39h
+                     job_done_at[1002]=33.39h  next_op_idx=4/7
+[SIM]   ENQUEUE order=1002 op#50 -> machine=5  ready@33.39h  duration=0.62h
+       machine=1 queue: [empty]
+       machine=2 queue: [empty]
+       machine=3 queue: [empty]
+       machine=4 queue: [empty]
+       machine=5 queue: [order=1001 op#60 ready@33.5h, order=1002 op#50 ready@33.4h]
+       machine=5: mach_free_slot=33.25h  earliest_ready=33.39h  worker_avail=8.00h  -> candidate_t=33.39h
+[SIM]   >> Selected machine=5  slot=0  earliest_start=33.39h
+         order=1002 op#50 due=38.0h prio=5.0 duration=0.62h ready@33.39h
+[SIM]   Rule=PRIO picked: order=1002 op#50
+[SIM]   Eligible workers for machine=5: ['8', '9', '10']
+         worker=8  free@33.25h  shift=8.0-16.0  -> avail@33.25h
+         worker=9  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=10  free@33.39h  shift=8.0-16.0  -> avail@33.39h
+[SIM]   >> Chosen worker: 9  available@8.00h
+[SIM]   SCHEDULE: order=1002 op#50 machine=5 worker=9
+                   tentative=33.39h  worker_free=8.00h
+                   START=33.39h  END=34.02h  duration=0.62h
+[SIM]   State update: machine=5 slot=0 now free@34.02h
+                     worker=9 now free@34.02h
+                     job_done_at[1002]=34.02h  next_op_idx=5/7
+[SIM]   ENQUEUE order=1002 op#60 -> machine=3  ready@34.02h  duration=0.62h
+       machine=1 queue: [empty]
+       machine=2 queue: [empty]
+       machine=3 queue: [order=1002 op#60 ready@34.0h]
+       machine=4 queue: [empty]
+       machine=5 queue: [order=1001 op#60 ready@33.5h]
+       machine=3: mach_free_slot=32.62h  earliest_ready=34.02h  worker_avail=32.00h  -> candidate_t=34.02h
+       machine=5: mach_free_slot=34.02h  earliest_ready=33.45h  worker_avail=33.25h  -> candidate_t=34.02h
+[SIM]   >> Selected machine=3  slot=0  earliest_start=34.02h
+         order=1002 op#60 due=38.0h prio=5.0 duration=0.62h ready@34.02h
+[SIM]   Rule=PRIO picked: order=1002 op#60
+[SIM]   Eligible workers for machine=3: ['6', '7']
+         worker=6  free@32.62h  shift=8.0-16.0  -> avail@32.62h
+         worker=7  free@16.58h  shift=8.0-16.0  -> avail@32.00h
+[SIM]   >> Chosen worker: 7  available@32.00h
+[SIM]   SCHEDULE: order=1002 op#60 machine=3 worker=7
+                   tentative=34.02h  worker_free=32.00h
+                   START=34.02h  END=34.64h  duration=0.62h
+[SIM]   State update: machine=3 slot=0 now free@34.64h
+                     worker=7 now free@34.64h
+                     job_done_at[1002]=34.64h  next_op_idx=6/7
+[SIM]   ENQUEUE order=1002 op#70 -> machine=5  ready@34.64h  duration=0.62h
+       machine=1 queue: [empty]
+       machine=2 queue: [empty]
+       machine=3 queue: [empty]
+       machine=4 queue: [empty]
+       machine=5 queue: [order=1001 op#60 ready@33.5h, order=1002 op#70 ready@34.6h]
+       machine=5: mach_free_slot=34.02h  earliest_ready=33.45h  worker_avail=33.25h  -> candidate_t=34.02h
+[SIM]   >> Selected machine=5  slot=0  earliest_start=34.02h
+         order=1001 op#60 due=22.0h prio=1.0 duration=0.73h ready@33.45h
+[SIM]   Rule=PRIO picked: order=1001 op#60
+[SIM]   Eligible workers for machine=5: ['8', '9', '10']
+         worker=8  free@33.25h  shift=8.0-16.0  -> avail@33.25h
+         worker=9  free@34.02h  shift=8.0-16.0  -> avail@34.02h
+         worker=10  free@33.39h  shift=8.0-16.0  -> avail@33.39h
+[SIM]   >> Chosen worker: 8  available@33.25h
+[SIM]   SCHEDULE: order=1001 op#60 machine=5 worker=8
+                   tentative=34.02h  worker_free=33.25h
+                   START=34.02h  END=34.74h  duration=0.73h
+[SIM]   State update: machine=5 slot=0 now free@34.74h
+                     worker=8 now free@34.74h
+                     job_done_at[1001]=34.74h  next_op_idx=6/6
+[SIM]   *** ORDER 1001 COMPLETE at 34.74h (due=22.00h) ***
+       machine=1 queue: [empty]
+       machine=2 queue: [empty]
+       machine=3 queue: [empty]
+       machine=4 queue: [empty]
+       machine=5 queue: [order=1002 op#70 ready@34.6h]
+       machine=5: mach_free_slot=34.74h  earliest_ready=34.64h  worker_avail=33.39h  -> candidate_t=34.74h
+[SIM]   >> Selected machine=5  slot=0  earliest_start=34.74h
+         order=1002 op#70 due=38.0h prio=5.0 duration=0.62h ready@34.64h
+[SIM]   Rule=PRIO picked: order=1002 op#70
+[SIM]   Eligible workers for machine=5: ['8', '9', '10']
+         worker=8  free@34.74h  shift=8.0-16.0  -> avail@34.74h
+         worker=9  free@34.02h  shift=8.0-16.0  -> avail@34.02h
+         worker=10  free@33.39h  shift=8.0-16.0  -> avail@33.39h
+[SIM]   >> Chosen worker: 10  available@33.39h
+[SIM]   SCHEDULE: order=1002 op#70 machine=5 worker=10
+                   tentative=34.74h  worker_free=33.39h
+                   START=34.74h  END=35.37h  duration=0.62h
+[SIM]   State update: machine=5 slot=0 now free@35.37h
+                     worker=10 now free@35.37h
+                     job_done_at[1002]=35.37h  next_op_idx=7/7
+[SIM]   *** ORDER 1002 COMPLETE at 35.37h (due=38.00h) ***
+
+[SIM] ── TWT Calculation ──
+       order=1003  finish=33.25h  due=62.00h  prio=9.0  weight=1.0  tardiness=0.00h  contrib=0.00  [on time]
+       order=1001  finish=34.74h  due=22.00h  prio=1.0  weight=9.0  tardiness=12.74h  contrib=114.70  [LATE by 12.74h]
+       order=1002  finish=35.37h  due=38.00h  prio=5.0  weight=5.0  tardiness=0.00h  contrib=0.00  [on time]
+[SIM] Total TWT = 114.7031h
+=================================================================
+
+
+=================================================================
+[SIM] Rule: FIFO
+[SIM] Orders: 3  Total ops: 18
+[SIM] Machines: [1, 2, 3, 4, 5]
+       machine=1  slots=1  workers=['1', '2']
+       machine=2  slots=1  workers=['1', '3', '4', '5', '7']
+       machine=3  slots=1  workers=['6', '7']
+       machine=4  slots=1  workers=['10']
+       machine=5  slots=1  workers=['8', '9', '10']
+[SIM] Job releases / due dates / priority:
+       order=1001  release=0.0h  due=22.0h  prio=1.0  ops=6
+       order=1002  release=0.0h  due=38.0h  prio=5.0  ops=7
+       order=1003  release=2.0h  due=62.0h  prio=9.0  ops=5
+=================================================================
+
+[SIM] Enqueuing first operation of each order:
+[SIM]   ENQUEUE order=1001 op#10 -> machine=1  ready@0.00h  duration=1.73h
+[SIM]   ENQUEUE order=1002 op#10 -> machine=1  ready@0.00h  duration=2.77h
+[SIM]   ENQUEUE order=1003 op#10 -> machine=2  ready@2.00h  duration=3.11h
+
+[SIM] Starting simulation loop (18 operations total)...
+       machine=1 queue: [order=1001 op#10 ready@0.0h, order=1002 op#10 ready@0.0h]
+       machine=2 queue: [order=1003 op#10 ready@2.0h]
+       machine=3 queue: [empty]
+       machine=4 queue: [empty]
+       machine=5 queue: [empty]
+       machine=1: mach_free_slot=0.00h  earliest_ready=0.00h  worker_avail=8.00h  -> candidate_t=8.00h
+       machine=2: mach_free_slot=0.00h  earliest_ready=2.00h  worker_avail=8.00h  -> candidate_t=8.00h
+[SIM]   >> Selected machine=1  slot=0  earliest_start=8.00h
+         order=1001 op#10 due=22.0h prio=1.0 duration=1.73h ready@0.00h
+         order=1002 op#10 due=38.0h prio=5.0 duration=2.77h ready@0.00h
+[SIM]   Rule=FIFO picked: order=1001 op#10
+[SIM]   Eligible workers for machine=1: ['1', '2']
+         worker=1  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=2  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+[SIM]   >> Chosen worker: 1  available@8.00h
+[SIM]   SCHEDULE: order=1001 op#10 machine=1 worker=1
+                   tentative=8.00h  worker_free=8.00h
+                   START=8.00h  END=9.73h  duration=1.73h
+[SIM]   State update: machine=1 slot=0 now free@9.73h
+                     worker=1 now free@9.73h
+                     job_done_at[1001]=9.73h  next_op_idx=1/6
+[SIM]   ENQUEUE order=1001 op#20 -> machine=2  ready@9.73h  duration=1.71h
+       machine=1 queue: [order=1002 op#10 ready@0.0h]
+       machine=2 queue: [order=1003 op#10 ready@2.0h, order=1001 op#20 ready@9.7h]
+       machine=3 queue: [empty]
+       machine=4 queue: [empty]
+       machine=5 queue: [empty]
+       machine=1: mach_free_slot=9.73h  earliest_ready=0.00h  worker_avail=8.00h  -> candidate_t=9.73h
+       machine=2: mach_free_slot=0.00h  earliest_ready=2.00h  worker_avail=8.00h  -> candidate_t=8.00h
+[SIM]   >> Selected machine=2  slot=0  earliest_start=8.00h
+         order=1003 op#10 due=62.0h prio=9.0 duration=3.11h ready@2.00h
+[SIM]   Rule=FIFO picked: order=1003 op#10
+[SIM]   Eligible workers for machine=2: ['1', '3', '4', '5', '7']
+         worker=1  free@9.73h  shift=8.0-16.0  -> avail@9.73h
+         worker=3  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=4  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=5  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=7  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+[SIM]   >> Chosen worker: 3  available@8.00h
+[SIM]   SCHEDULE: order=1003 op#10 machine=2 worker=3
+                   tentative=8.00h  worker_free=8.00h
+                   START=8.00h  END=11.11h  duration=3.11h
+[SIM]   State update: machine=2 slot=0 now free@11.11h
+                     worker=3 now free@11.11h
+                     job_done_at[1003]=11.11h  next_op_idx=1/5
+[SIM]   ENQUEUE order=1003 op#20 -> machine=4  ready@11.11h  duration=0.62h
+       machine=1 queue: [order=1002 op#10 ready@0.0h]
+       machine=2 queue: [order=1001 op#20 ready@9.7h]
+       machine=3 queue: [empty]
+       machine=4 queue: [order=1003 op#20 ready@11.1h]
+       machine=5 queue: [empty]
+       machine=1: mach_free_slot=9.73h  earliest_ready=0.00h  worker_avail=8.00h  -> candidate_t=9.73h
+       machine=2: mach_free_slot=11.11h  earliest_ready=9.73h  worker_avail=8.00h  -> candidate_t=11.11h
+       machine=4: mach_free_slot=0.00h  earliest_ready=11.11h  worker_avail=8.00h  -> candidate_t=11.11h
+[SIM]   >> Selected machine=1  slot=0  earliest_start=9.73h
+         order=1002 op#10 due=38.0h prio=5.0 duration=2.77h ready@0.00h
+[SIM]   Rule=FIFO picked: order=1002 op#10
+[SIM]   Eligible workers for machine=1: ['1', '2']
+         worker=1  free@9.73h  shift=8.0-16.0  -> avail@9.73h
+         worker=2  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+[SIM]   >> Chosen worker: 2  available@8.00h
+[SIM]   SCHEDULE: order=1002 op#10 machine=1 worker=2
+                   tentative=9.73h  worker_free=8.00h
+                   START=9.73h  END=12.50h  duration=2.77h
+[SIM]   State update: machine=1 slot=0 now free@12.50h
+                     worker=2 now free@12.50h
+                     job_done_at[1002]=12.50h  next_op_idx=1/7
+[SIM]   ENQUEUE order=1002 op#20 -> machine=3  ready@12.50h  duration=0.62h
+       machine=1 queue: [empty]
+       machine=2 queue: [order=1001 op#20 ready@9.7h]
+       machine=3 queue: [order=1002 op#20 ready@12.5h]
+       machine=4 queue: [order=1003 op#20 ready@11.1h]
+       machine=5 queue: [empty]
+       machine=2: mach_free_slot=11.11h  earliest_ready=9.73h  worker_avail=8.00h  -> candidate_t=11.11h
+       machine=3: mach_free_slot=0.00h  earliest_ready=12.50h  worker_avail=8.00h  -> candidate_t=12.50h
+       machine=4: mach_free_slot=0.00h  earliest_ready=11.11h  worker_avail=8.00h  -> candidate_t=11.11h
+[SIM]   >> Selected machine=2  slot=0  earliest_start=11.11h
+         order=1001 op#20 due=22.0h prio=1.0 duration=1.71h ready@9.73h
+[SIM]   Rule=FIFO picked: order=1001 op#20
+[SIM]   Eligible workers for machine=2: ['1', '3', '4', '5', '7']
+         worker=1  free@9.73h  shift=8.0-16.0  -> avail@9.73h
+         worker=3  free@11.11h  shift=8.0-16.0  -> avail@11.11h
+         worker=4  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=5  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=7  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+[SIM]   >> Chosen worker: 4  available@8.00h
+[SIM]   SCHEDULE: order=1001 op#20 machine=2 worker=4
+                   tentative=11.11h  worker_free=8.00h
+                   START=11.11h  END=12.82h  duration=1.71h
+[SIM]   State update: machine=2 slot=0 now free@12.82h
+                     worker=4 now free@12.82h
+                     job_done_at[1001]=12.82h  next_op_idx=2/6
+[SIM]   ENQUEUE order=1001 op#30 -> machine=3  ready@12.82h  duration=3.46h
+       machine=1 queue: [empty]
+       machine=2 queue: [empty]
+       machine=3 queue: [order=1002 op#20 ready@12.5h, order=1001 op#30 ready@12.8h]
+       machine=4 queue: [order=1003 op#20 ready@11.1h]
+       machine=5 queue: [empty]
+       machine=3: mach_free_slot=0.00h  earliest_ready=12.50h  worker_avail=8.00h  -> candidate_t=12.50h
+       machine=4: mach_free_slot=0.00h  earliest_ready=11.11h  worker_avail=8.00h  -> candidate_t=11.11h
+[SIM]   >> Selected machine=4  slot=0  earliest_start=11.11h
+         order=1003 op#20 due=62.0h prio=9.0 duration=0.62h ready@11.11h
+[SIM]   Rule=FIFO picked: order=1003 op#20
+[SIM]   Eligible workers for machine=4: ['10']
+         worker=10  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+[SIM]   >> Chosen worker: 10  available@8.00h
+[SIM]   SCHEDULE: order=1003 op#20 machine=4 worker=10
+                   tentative=11.11h  worker_free=8.00h
+                   START=11.11h  END=11.74h  duration=0.62h
+[SIM]   State update: machine=4 slot=0 now free@11.74h
+                     worker=10 now free@11.74h
+                     job_done_at[1003]=11.74h  next_op_idx=2/5
+[SIM]   ENQUEUE order=1003 op#30 -> machine=1  ready@11.74h  duration=0.62h
+       machine=1 queue: [order=1003 op#30 ready@11.7h]
+       machine=2 queue: [empty]
+       machine=3 queue: [order=1002 op#20 ready@12.5h, order=1001 op#30 ready@12.8h]
+       machine=4 queue: [empty]
+       machine=5 queue: [empty]
+       machine=1: mach_free_slot=12.50h  earliest_ready=11.74h  worker_avail=9.73h  -> candidate_t=12.50h
+       machine=3: mach_free_slot=0.00h  earliest_ready=12.50h  worker_avail=8.00h  -> candidate_t=12.50h
+[SIM]   >> Selected machine=1  slot=0  earliest_start=12.50h
+         order=1003 op#30 due=62.0h prio=9.0 duration=0.62h ready@11.74h
+[SIM]   Rule=FIFO picked: order=1003 op#30
+[SIM]   Eligible workers for machine=1: ['1', '2']
+         worker=1  free@9.73h  shift=8.0-16.0  -> avail@9.73h
+         worker=2  free@12.50h  shift=8.0-16.0  -> avail@12.50h
+[SIM]   >> Chosen worker: 1  available@9.73h
+[SIM]   SCHEDULE: order=1003 op#30 machine=1 worker=1
+                   tentative=12.50h  worker_free=9.73h
+                   START=12.50h  END=13.12h  duration=0.62h
+[SIM]   State update: machine=1 slot=0 now free@13.12h
+                     worker=1 now free@13.12h
+                     job_done_at[1003]=13.12h  next_op_idx=3/5
+[SIM]   ENQUEUE order=1003 op#40 -> machine=3  ready@13.12h  duration=0.62h
+       machine=1 queue: [empty]
+       machine=2 queue: [empty]
+       machine=3 queue: [order=1002 op#20 ready@12.5h, order=1001 op#30 ready@12.8h, order=1003 op#40 ready@13.1h]
+       machine=4 queue: [empty]
+       machine=5 queue: [empty]
+       machine=3: mach_free_slot=0.00h  earliest_ready=12.50h  worker_avail=8.00h  -> candidate_t=12.50h
+[SIM]   >> Selected machine=3  slot=0  earliest_start=12.50h
+         order=1002 op#20 due=38.0h prio=5.0 duration=0.62h ready@12.50h
+[SIM]   Rule=FIFO picked: order=1002 op#20
+[SIM]   Eligible workers for machine=3: ['6', '7']
+         worker=6  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=7  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+[SIM]   >> Chosen worker: 6  available@8.00h
+[SIM]   SCHEDULE: order=1002 op#20 machine=3 worker=6
+                   tentative=12.50h  worker_free=8.00h
+                   START=12.50h  END=13.12h  duration=0.62h
+[SIM]   State update: machine=3 slot=0 now free@13.12h
+                     worker=6 now free@13.12h
+                     job_done_at[1002]=13.12h  next_op_idx=2/7
+[SIM]   ENQUEUE order=1002 op#30 -> machine=2  ready@13.12h  duration=3.80h
+       machine=1 queue: [empty]
+       machine=2 queue: [order=1002 op#30 ready@13.1h]
+       machine=3 queue: [order=1001 op#30 ready@12.8h, order=1003 op#40 ready@13.1h]
+       machine=4 queue: [empty]
+       machine=5 queue: [empty]
+       machine=2: mach_free_slot=12.82h  earliest_ready=13.12h  worker_avail=8.00h  -> candidate_t=13.12h
+       machine=3: mach_free_slot=13.12h  earliest_ready=12.82h  worker_avail=8.00h  -> candidate_t=13.12h
+[SIM]   >> Selected machine=2  slot=0  earliest_start=13.12h
+         order=1002 op#30 due=38.0h prio=5.0 duration=3.80h ready@13.12h
+[SIM]   Rule=FIFO picked: order=1002 op#30
+[SIM]   Eligible workers for machine=2: ['1', '3', '4', '5', '7']
+         worker=1  free@13.12h  shift=8.0-16.0  -> avail@13.12h
+         worker=3  free@11.11h  shift=8.0-16.0  -> avail@11.11h
+         worker=4  free@12.82h  shift=8.0-16.0  -> avail@12.82h
+         worker=5  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=7  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+[SIM]   >> Chosen worker: 5  available@8.00h
+[SIM]   SCHEDULE: order=1002 op#30 machine=2 worker=5
+                   tentative=13.12h  worker_free=8.00h
+                   START=13.12h  END=16.93h  duration=3.80h
+[SIM]   State update: machine=2 slot=0 now free@16.93h
+                     worker=5 now free@16.93h
+                     job_done_at[1002]=16.93h  next_op_idx=3/7
+[SIM]   ENQUEUE order=1002 op#40 -> machine=4  ready@16.93h  duration=0.62h
+       machine=1 queue: [empty]
+       machine=2 queue: [empty]
+       machine=3 queue: [order=1001 op#30 ready@12.8h, order=1003 op#40 ready@13.1h]
+       machine=4 queue: [order=1002 op#40 ready@16.9h]
+       machine=5 queue: [empty]
+       machine=3: mach_free_slot=13.12h  earliest_ready=12.82h  worker_avail=8.00h  -> candidate_t=13.12h
+       machine=4: mach_free_slot=11.74h  earliest_ready=16.93h  worker_avail=11.74h  -> candidate_t=16.93h
+[SIM]   >> Selected machine=3  slot=0  earliest_start=13.12h
+         order=1001 op#30 due=22.0h prio=1.0 duration=3.46h ready@12.82h
+         order=1003 op#40 due=62.0h prio=9.0 duration=0.62h ready@13.12h
+[SIM]   Rule=FIFO picked: order=1001 op#30
+[SIM]   Eligible workers for machine=3: ['6', '7']
+         worker=6  free@13.12h  shift=8.0-16.0  -> avail@13.12h
+         worker=7  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+[SIM]   >> Chosen worker: 7  available@8.00h
+[SIM]   SCHEDULE: order=1001 op#30 machine=3 worker=7
+                   tentative=13.12h  worker_free=8.00h
+                   START=13.12h  END=16.58h  duration=3.46h
+[SIM]   State update: machine=3 slot=0 now free@16.58h
+                     worker=7 now free@16.58h
+                     job_done_at[1001]=16.58h  next_op_idx=3/6
+[SIM]   ENQUEUE order=1001 op#40 -> machine=4  ready@16.58h  duration=0.77h
+       machine=1 queue: [empty]
+       machine=2 queue: [empty]
+       machine=3 queue: [order=1003 op#40 ready@13.1h]
+       machine=4 queue: [order=1002 op#40 ready@16.9h, order=1001 op#40 ready@16.6h]
+       machine=5 queue: [empty]
+       machine=3: mach_free_slot=16.58h  earliest_ready=13.12h  worker_avail=13.12h  -> candidate_t=16.58h
+       machine=4: mach_free_slot=11.74h  earliest_ready=16.58h  worker_avail=11.74h  -> candidate_t=16.58h
+[SIM]   >> Selected machine=3  slot=0  earliest_start=16.58h
+         order=1003 op#40 due=62.0h prio=9.0 duration=0.62h ready@13.12h
+[SIM]   Rule=FIFO picked: order=1003 op#40
+[SIM]   Eligible workers for machine=3: ['6', '7']
+         worker=6  free@13.12h  shift=8.0-16.0  -> avail@13.12h
+         worker=7  free@16.58h  shift=8.0-16.0  -> avail@32.00h
+[SIM]   >> Chosen worker: 6  available@13.12h
+[SIM]   SCHEDULE: order=1003 op#40 machine=3 worker=6
+                   tentative=32.00h  worker_free=13.12h
+                   START=32.00h  END=32.62h  duration=0.62h
+[SIM]   State update: machine=3 slot=0 now free@32.62h
+                     worker=6 now free@32.62h
+                     job_done_at[1003]=32.62h  next_op_idx=4/5
+[SIM]   ENQUEUE order=1003 op#50 -> machine=5  ready@32.62h  duration=0.62h
+       machine=1 queue: [empty]
+       machine=2 queue: [empty]
+       machine=3 queue: [empty]
+       machine=4 queue: [order=1002 op#40 ready@16.9h, order=1001 op#40 ready@16.6h]
+       machine=5 queue: [order=1003 op#50 ready@32.6h]
+       machine=4: mach_free_slot=11.74h  earliest_ready=16.58h  worker_avail=11.74h  -> candidate_t=16.58h
+       machine=5: mach_free_slot=0.00h  earliest_ready=32.62h  worker_avail=8.00h  -> candidate_t=32.62h
+[SIM]   >> Selected machine=4  slot=0  earliest_start=16.58h
+         order=1001 op#40 due=22.0h prio=1.0 duration=0.77h ready@16.58h
+[SIM]   Rule=FIFO picked: order=1001 op#40
+[SIM]   Eligible workers for machine=4: ['10']
+         worker=10  free@11.74h  shift=8.0-16.0  -> avail@11.74h
+[SIM]   >> Chosen worker: 10  available@11.74h
+[SIM]   SCHEDULE: order=1001 op#40 machine=4 worker=10
+                   tentative=32.00h  worker_free=11.74h
+                   START=32.00h  END=32.77h  duration=0.77h
+[SIM]   State update: machine=4 slot=0 now free@32.77h
+                     worker=10 now free@32.77h
+                     job_done_at[1001]=32.77h  next_op_idx=4/6
+[SIM]   ENQUEUE order=1001 op#50 -> machine=2  ready@32.77h  duration=0.68h
+       machine=1 queue: [empty]
+       machine=2 queue: [order=1001 op#50 ready@32.8h]
+       machine=3 queue: [empty]
+       machine=4 queue: [order=1002 op#40 ready@16.9h]
+       machine=5 queue: [order=1003 op#50 ready@32.6h]
+       machine=2: mach_free_slot=16.93h  earliest_ready=32.77h  worker_avail=11.11h  -> candidate_t=32.77h
+       machine=4: mach_free_slot=32.77h  earliest_ready=16.93h  worker_avail=32.77h  -> candidate_t=32.77h
+       machine=5: mach_free_slot=0.00h  earliest_ready=32.62h  worker_avail=8.00h  -> candidate_t=32.62h
+[SIM]   >> Selected machine=5  slot=0  earliest_start=32.62h
+         order=1003 op#50 due=62.0h prio=9.0 duration=0.62h ready@32.62h
+[SIM]   Rule=FIFO picked: order=1003 op#50
+[SIM]   Eligible workers for machine=5: ['8', '9', '10']
+         worker=8  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=9  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=10  free@32.77h  shift=8.0-16.0  -> avail@32.77h
+[SIM]   >> Chosen worker: 8  available@8.00h
+[SIM]   SCHEDULE: order=1003 op#50 machine=5 worker=8
+                   tentative=32.62h  worker_free=8.00h
+                   START=32.62h  END=33.25h  duration=0.62h
+[SIM]   State update: machine=5 slot=0 now free@33.25h
+                     worker=8 now free@33.25h
+                     job_done_at[1003]=33.25h  next_op_idx=5/5
+[SIM]   *** ORDER 1003 COMPLETE at 33.25h (due=62.00h) ***
+       machine=1 queue: [empty]
+       machine=2 queue: [order=1001 op#50 ready@32.8h]
+       machine=3 queue: [empty]
+       machine=4 queue: [order=1002 op#40 ready@16.9h]
+       machine=5 queue: [empty]
+       machine=2: mach_free_slot=16.93h  earliest_ready=32.77h  worker_avail=11.11h  -> candidate_t=32.77h
+       machine=4: mach_free_slot=32.77h  earliest_ready=16.93h  worker_avail=32.77h  -> candidate_t=32.77h
+[SIM]   >> Selected machine=2  slot=0  earliest_start=32.77h
+         order=1001 op#50 due=22.0h prio=1.0 duration=0.68h ready@32.77h
+[SIM]   Rule=FIFO picked: order=1001 op#50
+[SIM]   Eligible workers for machine=2: ['1', '3', '4', '5', '7']
+         worker=1  free@13.12h  shift=8.0-16.0  -> avail@13.12h
+         worker=3  free@11.11h  shift=8.0-16.0  -> avail@11.11h
+         worker=4  free@12.82h  shift=8.0-16.0  -> avail@12.82h
+         worker=5  free@16.93h  shift=8.0-16.0  -> avail@32.00h
+         worker=7  free@16.58h  shift=8.0-16.0  -> avail@32.00h
+[SIM]   >> Chosen worker: 3  available@11.11h
+[SIM]   SCHEDULE: order=1001 op#50 machine=2 worker=3
+                   tentative=32.77h  worker_free=11.11h
+                   START=32.77h  END=33.45h  duration=0.68h
+[SIM]   State update: machine=2 slot=0 now free@33.45h
+                     worker=3 now free@33.45h
+                     job_done_at[1001]=33.45h  next_op_idx=5/6
+[SIM]   ENQUEUE order=1001 op#60 -> machine=5  ready@33.45h  duration=0.73h
+       machine=1 queue: [empty]
+       machine=2 queue: [empty]
+       machine=3 queue: [empty]
+       machine=4 queue: [order=1002 op#40 ready@16.9h]
+       machine=5 queue: [order=1001 op#60 ready@33.5h]
+       machine=4: mach_free_slot=32.77h  earliest_ready=16.93h  worker_avail=32.77h  -> candidate_t=32.77h
+       machine=5: mach_free_slot=33.25h  earliest_ready=33.45h  worker_avail=8.00h  -> candidate_t=33.45h
+[SIM]   >> Selected machine=4  slot=0  earliest_start=32.77h
+         order=1002 op#40 due=38.0h prio=5.0 duration=0.62h ready@16.93h
+[SIM]   Rule=FIFO picked: order=1002 op#40
+[SIM]   Eligible workers for machine=4: ['10']
+         worker=10  free@32.77h  shift=8.0-16.0  -> avail@32.77h
+[SIM]   >> Chosen worker: 10  available@32.77h
+[SIM]   SCHEDULE: order=1002 op#40 machine=4 worker=10
+                   tentative=32.77h  worker_free=32.77h
+                   START=32.77h  END=33.39h  duration=0.62h
+[SIM]   State update: machine=4 slot=0 now free@33.39h
+                     worker=10 now free@33.39h
+                     job_done_at[1002]=33.39h  next_op_idx=4/7
+[SIM]   ENQUEUE order=1002 op#50 -> machine=5  ready@33.39h  duration=0.62h
+       machine=1 queue: [empty]
+       machine=2 queue: [empty]
+       machine=3 queue: [empty]
+       machine=4 queue: [empty]
+       machine=5 queue: [order=1001 op#60 ready@33.5h, order=1002 op#50 ready@33.4h]
+       machine=5: mach_free_slot=33.25h  earliest_ready=33.39h  worker_avail=8.00h  -> candidate_t=33.39h
+[SIM]   >> Selected machine=5  slot=0  earliest_start=33.39h
+         order=1002 op#50 due=38.0h prio=5.0 duration=0.62h ready@33.39h
+[SIM]   Rule=FIFO picked: order=1002 op#50
+[SIM]   Eligible workers for machine=5: ['8', '9', '10']
+         worker=8  free@33.25h  shift=8.0-16.0  -> avail@33.25h
+         worker=9  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=10  free@33.39h  shift=8.0-16.0  -> avail@33.39h
+[SIM]   >> Chosen worker: 9  available@8.00h
+[SIM]   SCHEDULE: order=1002 op#50 machine=5 worker=9
+                   tentative=33.39h  worker_free=8.00h
+                   START=33.39h  END=34.02h  duration=0.62h
+[SIM]   State update: machine=5 slot=0 now free@34.02h
+                     worker=9 now free@34.02h
+                     job_done_at[1002]=34.02h  next_op_idx=5/7
+[SIM]   ENQUEUE order=1002 op#60 -> machine=3  ready@34.02h  duration=0.62h
+       machine=1 queue: [empty]
+       machine=2 queue: [empty]
+       machine=3 queue: [order=1002 op#60 ready@34.0h]
+       machine=4 queue: [empty]
+       machine=5 queue: [order=1001 op#60 ready@33.5h]
+       machine=3: mach_free_slot=32.62h  earliest_ready=34.02h  worker_avail=32.00h  -> candidate_t=34.02h
+       machine=5: mach_free_slot=34.02h  earliest_ready=33.45h  worker_avail=33.25h  -> candidate_t=34.02h
+[SIM]   >> Selected machine=3  slot=0  earliest_start=34.02h
+         order=1002 op#60 due=38.0h prio=5.0 duration=0.62h ready@34.02h
+[SIM]   Rule=FIFO picked: order=1002 op#60
+[SIM]   Eligible workers for machine=3: ['6', '7']
+         worker=6  free@32.62h  shift=8.0-16.0  -> avail@32.62h
+         worker=7  free@16.58h  shift=8.0-16.0  -> avail@32.00h
+[SIM]   >> Chosen worker: 7  available@32.00h
+[SIM]   SCHEDULE: order=1002 op#60 machine=3 worker=7
+                   tentative=34.02h  worker_free=32.00h
+                   START=34.02h  END=34.64h  duration=0.62h
+[SIM]   State update: machine=3 slot=0 now free@34.64h
+                     worker=7 now free@34.64h
+                     job_done_at[1002]=34.64h  next_op_idx=6/7
+[SIM]   ENQUEUE order=1002 op#70 -> machine=5  ready@34.64h  duration=0.62h
+       machine=1 queue: [empty]
+       machine=2 queue: [empty]
+       machine=3 queue: [empty]
+       machine=4 queue: [empty]
+       machine=5 queue: [order=1001 op#60 ready@33.5h, order=1002 op#70 ready@34.6h]
+       machine=5: mach_free_slot=34.02h  earliest_ready=33.45h  worker_avail=33.25h  -> candidate_t=34.02h
+[SIM]   >> Selected machine=5  slot=0  earliest_start=34.02h
+         order=1001 op#60 due=22.0h prio=1.0 duration=0.73h ready@33.45h
+[SIM]   Rule=FIFO picked: order=1001 op#60
+[SIM]   Eligible workers for machine=5: ['8', '9', '10']
+         worker=8  free@33.25h  shift=8.0-16.0  -> avail@33.25h
+         worker=9  free@34.02h  shift=8.0-16.0  -> avail@34.02h
+         worker=10  free@33.39h  shift=8.0-16.0  -> avail@33.39h
+[SIM]   >> Chosen worker: 8  available@33.25h
+[SIM]   SCHEDULE: order=1001 op#60 machine=5 worker=8
+                   tentative=34.02h  worker_free=33.25h
+                   START=34.02h  END=34.74h  duration=0.73h
+[SIM]   State update: machine=5 slot=0 now free@34.74h
+                     worker=8 now free@34.74h
+                     job_done_at[1001]=34.74h  next_op_idx=6/6
+[SIM]   *** ORDER 1001 COMPLETE at 34.74h (due=22.00h) ***
+       machine=1 queue: [empty]
+       machine=2 queue: [empty]
+       machine=3 queue: [empty]
+       machine=4 queue: [empty]
+       machine=5 queue: [order=1002 op#70 ready@34.6h]
+       machine=5: mach_free_slot=34.74h  earliest_ready=34.64h  worker_avail=33.39h  -> candidate_t=34.74h
+[SIM]   >> Selected machine=5  slot=0  earliest_start=34.74h
+         order=1002 op#70 due=38.0h prio=5.0 duration=0.62h ready@34.64h
+[SIM]   Rule=FIFO picked: order=1002 op#70
+[SIM]   Eligible workers for machine=5: ['8', '9', '10']
+         worker=8  free@34.74h  shift=8.0-16.0  -> avail@34.74h
+         worker=9  free@34.02h  shift=8.0-16.0  -> avail@34.02h
+         worker=10  free@33.39h  shift=8.0-16.0  -> avail@33.39h
+[SIM]   >> Chosen worker: 10  available@33.39h
+[SIM]   SCHEDULE: order=1002 op#70 machine=5 worker=10
+                   tentative=34.74h  worker_free=33.39h
+                   START=34.74h  END=35.37h  duration=0.62h
+[SIM]   State update: machine=5 slot=0 now free@35.37h
+                     worker=10 now free@35.37h
+                     job_done_at[1002]=35.37h  next_op_idx=7/7
+[SIM]   *** ORDER 1002 COMPLETE at 35.37h (due=38.00h) ***
+
+[SIM] ── TWT Calculation ──
+       order=1003  finish=33.25h  due=62.00h  prio=9.0  weight=1.0  tardiness=0.00h  contrib=0.00  [on time]
+       order=1001  finish=34.74h  due=22.00h  prio=1.0  weight=9.0  tardiness=12.74h  contrib=114.70  [LATE by 12.74h]
+       order=1002  finish=35.37h  due=38.00h  prio=5.0  weight=5.0  tardiness=0.00h  contrib=0.00  [on time]
+[SIM] Total TWT = 114.7031h
+=================================================================
+
+
+=================================================================
+[SIM] Rule: CR
+[SIM] Orders: 3  Total ops: 18
+[SIM] Machines: [1, 2, 3, 4, 5]
+       machine=1  slots=1  workers=['1', '2']
+       machine=2  slots=1  workers=['1', '3', '4', '5', '7']
+       machine=3  slots=1  workers=['6', '7']
+       machine=4  slots=1  workers=['10']
+       machine=5  slots=1  workers=['8', '9', '10']
+[SIM] Job releases / due dates / priority:
+       order=1001  release=0.0h  due=22.0h  prio=1.0  ops=6
+       order=1002  release=0.0h  due=38.0h  prio=5.0  ops=7
+       order=1003  release=2.0h  due=62.0h  prio=9.0  ops=5
+=================================================================
+
+[SIM] Enqueuing first operation of each order:
+[SIM]   ENQUEUE order=1001 op#10 -> machine=1  ready@0.00h  duration=1.73h
+[SIM]   ENQUEUE order=1002 op#10 -> machine=1  ready@0.00h  duration=2.77h
+[SIM]   ENQUEUE order=1003 op#10 -> machine=2  ready@2.00h  duration=3.11h
+
+[SIM] Starting simulation loop (18 operations total)...
+       machine=1 queue: [order=1001 op#10 ready@0.0h, order=1002 op#10 ready@0.0h]
+       machine=2 queue: [order=1003 op#10 ready@2.0h]
+       machine=3 queue: [empty]
+       machine=4 queue: [empty]
+       machine=5 queue: [empty]
+       machine=1: mach_free_slot=0.00h  earliest_ready=0.00h  worker_avail=8.00h  -> candidate_t=8.00h
+       machine=2: mach_free_slot=0.00h  earliest_ready=2.00h  worker_avail=8.00h  -> candidate_t=8.00h
+[SIM]   >> Selected machine=1  slot=0  earliest_start=8.00h
+         order=1001 op#10 due=22.0h prio=1.0 duration=1.73h ready@0.00h
+         order=1002 op#10 due=38.0h prio=5.0 duration=2.77h ready@0.00h
+[SIM]   Rule=CR picked: order=1001 op#10
+[SIM]   Eligible workers for machine=1: ['1', '2']
+         worker=1  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=2  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+[SIM]   >> Chosen worker: 1  available@8.00h
+[SIM]   SCHEDULE: order=1001 op#10 machine=1 worker=1
+                   tentative=8.00h  worker_free=8.00h
+                   START=8.00h  END=9.73h  duration=1.73h
+[SIM]   State update: machine=1 slot=0 now free@9.73h
+                     worker=1 now free@9.73h
+                     job_done_at[1001]=9.73h  next_op_idx=1/6
+[SIM]   ENQUEUE order=1001 op#20 -> machine=2  ready@9.73h  duration=1.71h
+       machine=1 queue: [order=1002 op#10 ready@0.0h]
+       machine=2 queue: [order=1003 op#10 ready@2.0h, order=1001 op#20 ready@9.7h]
+       machine=3 queue: [empty]
+       machine=4 queue: [empty]
+       machine=5 queue: [empty]
+       machine=1: mach_free_slot=9.73h  earliest_ready=0.00h  worker_avail=8.00h  -> candidate_t=9.73h
+       machine=2: mach_free_slot=0.00h  earliest_ready=2.00h  worker_avail=8.00h  -> candidate_t=8.00h
+[SIM]   >> Selected machine=2  slot=0  earliest_start=8.00h
+         order=1003 op#10 due=62.0h prio=9.0 duration=3.11h ready@2.00h
+[SIM]   Rule=CR picked: order=1003 op#10
+[SIM]   Eligible workers for machine=2: ['1', '3', '4', '5', '7']
+         worker=1  free@9.73h  shift=8.0-16.0  -> avail@9.73h
+         worker=3  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=4  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=5  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=7  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+[SIM]   >> Chosen worker: 3  available@8.00h
+[SIM]   SCHEDULE: order=1003 op#10 machine=2 worker=3
+                   tentative=8.00h  worker_free=8.00h
+                   START=8.00h  END=11.11h  duration=3.11h
+[SIM]   State update: machine=2 slot=0 now free@11.11h
+                     worker=3 now free@11.11h
+                     job_done_at[1003]=11.11h  next_op_idx=1/5
+[SIM]   ENQUEUE order=1003 op#20 -> machine=4  ready@11.11h  duration=0.62h
+       machine=1 queue: [order=1002 op#10 ready@0.0h]
+       machine=2 queue: [order=1001 op#20 ready@9.7h]
+       machine=3 queue: [empty]
+       machine=4 queue: [order=1003 op#20 ready@11.1h]
+       machine=5 queue: [empty]
+       machine=1: mach_free_slot=9.73h  earliest_ready=0.00h  worker_avail=8.00h  -> candidate_t=9.73h
+       machine=2: mach_free_slot=11.11h  earliest_ready=9.73h  worker_avail=8.00h  -> candidate_t=11.11h
+       machine=4: mach_free_slot=0.00h  earliest_ready=11.11h  worker_avail=8.00h  -> candidate_t=11.11h
+[SIM]   >> Selected machine=1  slot=0  earliest_start=9.73h
+         order=1002 op#10 due=38.0h prio=5.0 duration=2.77h ready@0.00h
+[SIM]   Rule=CR picked: order=1002 op#10
+[SIM]   Eligible workers for machine=1: ['1', '2']
+         worker=1  free@9.73h  shift=8.0-16.0  -> avail@9.73h
+         worker=2  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+[SIM]   >> Chosen worker: 2  available@8.00h
+[SIM]   SCHEDULE: order=1002 op#10 machine=1 worker=2
+                   tentative=9.73h  worker_free=8.00h
+                   START=9.73h  END=12.50h  duration=2.77h
+[SIM]   State update: machine=1 slot=0 now free@12.50h
+                     worker=2 now free@12.50h
+                     job_done_at[1002]=12.50h  next_op_idx=1/7
+[SIM]   ENQUEUE order=1002 op#20 -> machine=3  ready@12.50h  duration=0.62h
+       machine=1 queue: [empty]
+       machine=2 queue: [order=1001 op#20 ready@9.7h]
+       machine=3 queue: [order=1002 op#20 ready@12.5h]
+       machine=4 queue: [order=1003 op#20 ready@11.1h]
+       machine=5 queue: [empty]
+       machine=2: mach_free_slot=11.11h  earliest_ready=9.73h  worker_avail=8.00h  -> candidate_t=11.11h
+       machine=3: mach_free_slot=0.00h  earliest_ready=12.50h  worker_avail=8.00h  -> candidate_t=12.50h
+       machine=4: mach_free_slot=0.00h  earliest_ready=11.11h  worker_avail=8.00h  -> candidate_t=11.11h
+[SIM]   >> Selected machine=2  slot=0  earliest_start=11.11h
+         order=1001 op#20 due=22.0h prio=1.0 duration=1.71h ready@9.73h
+[SIM]   Rule=CR picked: order=1001 op#20
+[SIM]   Eligible workers for machine=2: ['1', '3', '4', '5', '7']
+         worker=1  free@9.73h  shift=8.0-16.0  -> avail@9.73h
+         worker=3  free@11.11h  shift=8.0-16.0  -> avail@11.11h
+         worker=4  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=5  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=7  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+[SIM]   >> Chosen worker: 4  available@8.00h
+[SIM]   SCHEDULE: order=1001 op#20 machine=2 worker=4
+                   tentative=11.11h  worker_free=8.00h
+                   START=11.11h  END=12.82h  duration=1.71h
+[SIM]   State update: machine=2 slot=0 now free@12.82h
+                     worker=4 now free@12.82h
+                     job_done_at[1001]=12.82h  next_op_idx=2/6
+[SIM]   ENQUEUE order=1001 op#30 -> machine=3  ready@12.82h  duration=3.46h
+       machine=1 queue: [empty]
+       machine=2 queue: [empty]
+       machine=3 queue: [order=1002 op#20 ready@12.5h, order=1001 op#30 ready@12.8h]
+       machine=4 queue: [order=1003 op#20 ready@11.1h]
+       machine=5 queue: [empty]
+       machine=3: mach_free_slot=0.00h  earliest_ready=12.50h  worker_avail=8.00h  -> candidate_t=12.50h
+       machine=4: mach_free_slot=0.00h  earliest_ready=11.11h  worker_avail=8.00h  -> candidate_t=11.11h
+[SIM]   >> Selected machine=4  slot=0  earliest_start=11.11h
+         order=1003 op#20 due=62.0h prio=9.0 duration=0.62h ready@11.11h
+[SIM]   Rule=CR picked: order=1003 op#20
+[SIM]   Eligible workers for machine=4: ['10']
+         worker=10  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+[SIM]   >> Chosen worker: 10  available@8.00h
+[SIM]   SCHEDULE: order=1003 op#20 machine=4 worker=10
+                   tentative=11.11h  worker_free=8.00h
+                   START=11.11h  END=11.74h  duration=0.62h
+[SIM]   State update: machine=4 slot=0 now free@11.74h
+                     worker=10 now free@11.74h
+                     job_done_at[1003]=11.74h  next_op_idx=2/5
+[SIM]   ENQUEUE order=1003 op#30 -> machine=1  ready@11.74h  duration=0.62h
+       machine=1 queue: [order=1003 op#30 ready@11.7h]
+       machine=2 queue: [empty]
+       machine=3 queue: [order=1002 op#20 ready@12.5h, order=1001 op#30 ready@12.8h]
+       machine=4 queue: [empty]
+       machine=5 queue: [empty]
+       machine=1: mach_free_slot=12.50h  earliest_ready=11.74h  worker_avail=9.73h  -> candidate_t=12.50h
+       machine=3: mach_free_slot=0.00h  earliest_ready=12.50h  worker_avail=8.00h  -> candidate_t=12.50h
+[SIM]   >> Selected machine=1  slot=0  earliest_start=12.50h
+         order=1003 op#30 due=62.0h prio=9.0 duration=0.62h ready@11.74h
+[SIM]   Rule=CR picked: order=1003 op#30
+[SIM]   Eligible workers for machine=1: ['1', '2']
+         worker=1  free@9.73h  shift=8.0-16.0  -> avail@9.73h
+         worker=2  free@12.50h  shift=8.0-16.0  -> avail@12.50h
+[SIM]   >> Chosen worker: 1  available@9.73h
+[SIM]   SCHEDULE: order=1003 op#30 machine=1 worker=1
+                   tentative=12.50h  worker_free=9.73h
+                   START=12.50h  END=13.12h  duration=0.62h
+[SIM]   State update: machine=1 slot=0 now free@13.12h
+                     worker=1 now free@13.12h
+                     job_done_at[1003]=13.12h  next_op_idx=3/5
+[SIM]   ENQUEUE order=1003 op#40 -> machine=3  ready@13.12h  duration=0.62h
+       machine=1 queue: [empty]
+       machine=2 queue: [empty]
+       machine=3 queue: [order=1002 op#20 ready@12.5h, order=1001 op#30 ready@12.8h, order=1003 op#40 ready@13.1h]
+       machine=4 queue: [empty]
+       machine=5 queue: [empty]
+       machine=3: mach_free_slot=0.00h  earliest_ready=12.50h  worker_avail=8.00h  -> candidate_t=12.50h
+[SIM]   >> Selected machine=3  slot=0  earliest_start=12.50h
+         order=1002 op#20 due=38.0h prio=5.0 duration=0.62h ready@12.50h
+[SIM]   Rule=CR picked: order=1002 op#20
+[SIM]   Eligible workers for machine=3: ['6', '7']
+         worker=6  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=7  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+[SIM]   >> Chosen worker: 6  available@8.00h
+[SIM]   SCHEDULE: order=1002 op#20 machine=3 worker=6
+                   tentative=12.50h  worker_free=8.00h
+                   START=12.50h  END=13.12h  duration=0.62h
+[SIM]   State update: machine=3 slot=0 now free@13.12h
+                     worker=6 now free@13.12h
+                     job_done_at[1002]=13.12h  next_op_idx=2/7
+[SIM]   ENQUEUE order=1002 op#30 -> machine=2  ready@13.12h  duration=3.80h
+       machine=1 queue: [empty]
+       machine=2 queue: [order=1002 op#30 ready@13.1h]
+       machine=3 queue: [order=1001 op#30 ready@12.8h, order=1003 op#40 ready@13.1h]
+       machine=4 queue: [empty]
+       machine=5 queue: [empty]
+       machine=2: mach_free_slot=12.82h  earliest_ready=13.12h  worker_avail=8.00h  -> candidate_t=13.12h
+       machine=3: mach_free_slot=13.12h  earliest_ready=12.82h  worker_avail=8.00h  -> candidate_t=13.12h
+[SIM]   >> Selected machine=2  slot=0  earliest_start=13.12h
+         order=1002 op#30 due=38.0h prio=5.0 duration=3.80h ready@13.12h
+[SIM]   Rule=CR picked: order=1002 op#30
+[SIM]   Eligible workers for machine=2: ['1', '3', '4', '5', '7']
+         worker=1  free@13.12h  shift=8.0-16.0  -> avail@13.12h
+         worker=3  free@11.11h  shift=8.0-16.0  -> avail@11.11h
+         worker=4  free@12.82h  shift=8.0-16.0  -> avail@12.82h
+         worker=5  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=7  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+[SIM]   >> Chosen worker: 5  available@8.00h
+[SIM]   SCHEDULE: order=1002 op#30 machine=2 worker=5
+                   tentative=13.12h  worker_free=8.00h
+                   START=13.12h  END=16.93h  duration=3.80h
+[SIM]   State update: machine=2 slot=0 now free@16.93h
+                     worker=5 now free@16.93h
+                     job_done_at[1002]=16.93h  next_op_idx=3/7
+[SIM]   ENQUEUE order=1002 op#40 -> machine=4  ready@16.93h  duration=0.62h
+       machine=1 queue: [empty]
+       machine=2 queue: [empty]
+       machine=3 queue: [order=1001 op#30 ready@12.8h, order=1003 op#40 ready@13.1h]
+       machine=4 queue: [order=1002 op#40 ready@16.9h]
+       machine=5 queue: [empty]
+       machine=3: mach_free_slot=13.12h  earliest_ready=12.82h  worker_avail=8.00h  -> candidate_t=13.12h
+       machine=4: mach_free_slot=11.74h  earliest_ready=16.93h  worker_avail=11.74h  -> candidate_t=16.93h
+[SIM]   >> Selected machine=3  slot=0  earliest_start=13.12h
+         order=1001 op#30 due=22.0h prio=1.0 duration=3.46h ready@12.82h
+         order=1003 op#40 due=62.0h prio=9.0 duration=0.62h ready@13.12h
+[SIM]   Rule=CR picked: order=1001 op#30
+[SIM]   Eligible workers for machine=3: ['6', '7']
+         worker=6  free@13.12h  shift=8.0-16.0  -> avail@13.12h
+         worker=7  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+[SIM]   >> Chosen worker: 7  available@8.00h
+[SIM]   SCHEDULE: order=1001 op#30 machine=3 worker=7
+                   tentative=13.12h  worker_free=8.00h
+                   START=13.12h  END=16.58h  duration=3.46h
+[SIM]   State update: machine=3 slot=0 now free@16.58h
+                     worker=7 now free@16.58h
+                     job_done_at[1001]=16.58h  next_op_idx=3/6
+[SIM]   ENQUEUE order=1001 op#40 -> machine=4  ready@16.58h  duration=0.77h
+       machine=1 queue: [empty]
+       machine=2 queue: [empty]
+       machine=3 queue: [order=1003 op#40 ready@13.1h]
+       machine=4 queue: [order=1002 op#40 ready@16.9h, order=1001 op#40 ready@16.6h]
+       machine=5 queue: [empty]
+       machine=3: mach_free_slot=16.58h  earliest_ready=13.12h  worker_avail=13.12h  -> candidate_t=16.58h
+       machine=4: mach_free_slot=11.74h  earliest_ready=16.58h  worker_avail=11.74h  -> candidate_t=16.58h
+[SIM]   >> Selected machine=3  slot=0  earliest_start=16.58h
+         order=1003 op#40 due=62.0h prio=9.0 duration=0.62h ready@13.12h
+[SIM]   Rule=CR picked: order=1003 op#40
+[SIM]   Eligible workers for machine=3: ['6', '7']
+         worker=6  free@13.12h  shift=8.0-16.0  -> avail@13.12h
+         worker=7  free@16.58h  shift=8.0-16.0  -> avail@32.00h
+[SIM]   >> Chosen worker: 6  available@13.12h
+[SIM]   SCHEDULE: order=1003 op#40 machine=3 worker=6
+                   tentative=32.00h  worker_free=13.12h
+                   START=32.00h  END=32.62h  duration=0.62h
+[SIM]   State update: machine=3 slot=0 now free@32.62h
+                     worker=6 now free@32.62h
+                     job_done_at[1003]=32.62h  next_op_idx=4/5
+[SIM]   ENQUEUE order=1003 op#50 -> machine=5  ready@32.62h  duration=0.62h
+       machine=1 queue: [empty]
+       machine=2 queue: [empty]
+       machine=3 queue: [empty]
+       machine=4 queue: [order=1002 op#40 ready@16.9h, order=1001 op#40 ready@16.6h]
+       machine=5 queue: [order=1003 op#50 ready@32.6h]
+       machine=4: mach_free_slot=11.74h  earliest_ready=16.58h  worker_avail=11.74h  -> candidate_t=16.58h
+       machine=5: mach_free_slot=0.00h  earliest_ready=32.62h  worker_avail=8.00h  -> candidate_t=32.62h
+[SIM]   >> Selected machine=4  slot=0  earliest_start=16.58h
+         order=1001 op#40 due=22.0h prio=1.0 duration=0.77h ready@16.58h
+[SIM]   Rule=CR picked: order=1001 op#40
+[SIM]   Eligible workers for machine=4: ['10']
+         worker=10  free@11.74h  shift=8.0-16.0  -> avail@11.74h
+[SIM]   >> Chosen worker: 10  available@11.74h
+[SIM]   SCHEDULE: order=1001 op#40 machine=4 worker=10
+                   tentative=32.00h  worker_free=11.74h
+                   START=32.00h  END=32.77h  duration=0.77h
+[SIM]   State update: machine=4 slot=0 now free@32.77h
+                     worker=10 now free@32.77h
+                     job_done_at[1001]=32.77h  next_op_idx=4/6
+[SIM]   ENQUEUE order=1001 op#50 -> machine=2  ready@32.77h  duration=0.68h
+       machine=1 queue: [empty]
+       machine=2 queue: [order=1001 op#50 ready@32.8h]
+       machine=3 queue: [empty]
+       machine=4 queue: [order=1002 op#40 ready@16.9h]
+       machine=5 queue: [order=1003 op#50 ready@32.6h]
+       machine=2: mach_free_slot=16.93h  earliest_ready=32.77h  worker_avail=11.11h  -> candidate_t=32.77h
+       machine=4: mach_free_slot=32.77h  earliest_ready=16.93h  worker_avail=32.77h  -> candidate_t=32.77h
+       machine=5: mach_free_slot=0.00h  earliest_ready=32.62h  worker_avail=8.00h  -> candidate_t=32.62h
+[SIM]   >> Selected machine=5  slot=0  earliest_start=32.62h
+         order=1003 op#50 due=62.0h prio=9.0 duration=0.62h ready@32.62h
+[SIM]   Rule=CR picked: order=1003 op#50
+[SIM]   Eligible workers for machine=5: ['8', '9', '10']
+         worker=8  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=9  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=10  free@32.77h  shift=8.0-16.0  -> avail@32.77h
+[SIM]   >> Chosen worker: 8  available@8.00h
+[SIM]   SCHEDULE: order=1003 op#50 machine=5 worker=8
+                   tentative=32.62h  worker_free=8.00h
+                   START=32.62h  END=33.25h  duration=0.62h
+[SIM]   State update: machine=5 slot=0 now free@33.25h
+                     worker=8 now free@33.25h
+                     job_done_at[1003]=33.25h  next_op_idx=5/5
+[SIM]   *** ORDER 1003 COMPLETE at 33.25h (due=62.00h) ***
+       machine=1 queue: [empty]
+       machine=2 queue: [order=1001 op#50 ready@32.8h]
+       machine=3 queue: [empty]
+       machine=4 queue: [order=1002 op#40 ready@16.9h]
+       machine=5 queue: [empty]
+       machine=2: mach_free_slot=16.93h  earliest_ready=32.77h  worker_avail=11.11h  -> candidate_t=32.77h
+       machine=4: mach_free_slot=32.77h  earliest_ready=16.93h  worker_avail=32.77h  -> candidate_t=32.77h
+[SIM]   >> Selected machine=2  slot=0  earliest_start=32.77h
+         order=1001 op#50 due=22.0h prio=1.0 duration=0.68h ready@32.77h
+[SIM]   Rule=CR picked: order=1001 op#50
+[SIM]   Eligible workers for machine=2: ['1', '3', '4', '5', '7']
+         worker=1  free@13.12h  shift=8.0-16.0  -> avail@13.12h
+         worker=3  free@11.11h  shift=8.0-16.0  -> avail@11.11h
+         worker=4  free@12.82h  shift=8.0-16.0  -> avail@12.82h
+         worker=5  free@16.93h  shift=8.0-16.0  -> avail@32.00h
+         worker=7  free@16.58h  shift=8.0-16.0  -> avail@32.00h
+[SIM]   >> Chosen worker: 3  available@11.11h
+[SIM]   SCHEDULE: order=1001 op#50 machine=2 worker=3
+                   tentative=32.77h  worker_free=11.11h
+                   START=32.77h  END=33.45h  duration=0.68h
+[SIM]   State update: machine=2 slot=0 now free@33.45h
+                     worker=3 now free@33.45h
+                     job_done_at[1001]=33.45h  next_op_idx=5/6
+[SIM]   ENQUEUE order=1001 op#60 -> machine=5  ready@33.45h  duration=0.73h
+       machine=1 queue: [empty]
+       machine=2 queue: [empty]
+       machine=3 queue: [empty]
+       machine=4 queue: [order=1002 op#40 ready@16.9h]
+       machine=5 queue: [order=1001 op#60 ready@33.5h]
+       machine=4: mach_free_slot=32.77h  earliest_ready=16.93h  worker_avail=32.77h  -> candidate_t=32.77h
+       machine=5: mach_free_slot=33.25h  earliest_ready=33.45h  worker_avail=8.00h  -> candidate_t=33.45h
+[SIM]   >> Selected machine=4  slot=0  earliest_start=32.77h
+         order=1002 op#40 due=38.0h prio=5.0 duration=0.62h ready@16.93h
+[SIM]   Rule=CR picked: order=1002 op#40
+[SIM]   Eligible workers for machine=4: ['10']
+         worker=10  free@32.77h  shift=8.0-16.0  -> avail@32.77h
+[SIM]   >> Chosen worker: 10  available@32.77h
+[SIM]   SCHEDULE: order=1002 op#40 machine=4 worker=10
+                   tentative=32.77h  worker_free=32.77h
+                   START=32.77h  END=33.39h  duration=0.62h
+[SIM]   State update: machine=4 slot=0 now free@33.39h
+                     worker=10 now free@33.39h
+                     job_done_at[1002]=33.39h  next_op_idx=4/7
+[SIM]   ENQUEUE order=1002 op#50 -> machine=5  ready@33.39h  duration=0.62h
+       machine=1 queue: [empty]
+       machine=2 queue: [empty]
+       machine=3 queue: [empty]
+       machine=4 queue: [empty]
+       machine=5 queue: [order=1001 op#60 ready@33.5h, order=1002 op#50 ready@33.4h]
+       machine=5: mach_free_slot=33.25h  earliest_ready=33.39h  worker_avail=8.00h  -> candidate_t=33.39h
+[SIM]   >> Selected machine=5  slot=0  earliest_start=33.39h
+         order=1002 op#50 due=38.0h prio=5.0 duration=0.62h ready@33.39h
+[SIM]   Rule=CR picked: order=1002 op#50
+[SIM]   Eligible workers for machine=5: ['8', '9', '10']
+         worker=8  free@33.25h  shift=8.0-16.0  -> avail@33.25h
+         worker=9  free@0.00h  shift=8.0-16.0  -> avail@8.00h
+         worker=10  free@33.39h  shift=8.0-16.0  -> avail@33.39h
+[SIM]   >> Chosen worker: 9  available@8.00h
+[SIM]   SCHEDULE: order=1002 op#50 machine=5 worker=9
+                   tentative=33.39h  worker_free=8.00h
+                   START=33.39h  END=34.02h  duration=0.62h
+[SIM]   State update: machine=5 slot=0 now free@34.02h
+                     worker=9 now free@34.02h
+                     job_done_at[1002]=34.02h  next_op_idx=5/7
+[SIM]   ENQUEUE order=1002 op#60 -> machine=3  ready@34.02h  duration=0.62h
+       machine=1 queue: [empty]
+       machine=2 queue: [empty]
+       machine=3 queue: [order=1002 op#60 ready@34.0h]
+       machine=4 queue: [empty]
+       machine=5 queue: [order=1001 op#60 ready@33.5h]
+       machine=3: mach_free_slot=32.62h  earliest_ready=34.02h  worker_avail=32.00h  -> candidate_t=34.02h
+       machine=5: mach_free_slot=34.02h  earliest_ready=33.45h  worker_avail=33.25h  -> candidate_t=34.02h
+[SIM]   >> Selected machine=3  slot=0  earliest_start=34.02h
+         order=1002 op#60 due=38.0h prio=5.0 duration=0.62h ready@34.02h
+[SIM]   Rule=CR picked: order=1002 op#60
+[SIM]   Eligible workers for machine=3: ['6', '7']
+         worker=6  free@32.62h  shift=8.0-16.0  -> avail@32.62h
+         worker=7  free@16.58h  shift=8.0-16.0  -> avail@32.00h
+[SIM]   >> Chosen worker: 7  available@32.00h
+[SIM]   SCHEDULE: order=1002 op#60 machine=3 worker=7
+                   tentative=34.02h  worker_free=32.00h
+                   START=34.02h  END=34.64h  duration=0.62h
+[SIM]   State update: machine=3 slot=0 now free@34.64h
+                     worker=7 now free@34.64h
+                     job_done_at[1002]=34.64h  next_op_idx=6/7
+[SIM]   ENQUEUE order=1002 op#70 -> machine=5  ready@34.64h  duration=0.62h
+       machine=1 queue: [empty]
+       machine=2 queue: [empty]
+       machine=3 queue: [empty]
+       machine=4 queue: [empty]
+       machine=5 queue: [order=1001 op#60 ready@33.5h, order=1002 op#70 ready@34.6h]
+       machine=5: mach_free_slot=34.02h  earliest_ready=33.45h  worker_avail=33.25h  -> candidate_t=34.02h
+[SIM]   >> Selected machine=5  slot=0  earliest_start=34.02h
+         order=1001 op#60 due=22.0h prio=1.0 duration=0.73h ready@33.45h
+[SIM]   Rule=CR picked: order=1001 op#60
+[SIM]   Eligible workers for machine=5: ['8', '9', '10']
+         worker=8  free@33.25h  shift=8.0-16.0  -> avail@33.25h
+         worker=9  free@34.02h  shift=8.0-16.0  -> avail@34.02h
+         worker=10  free@33.39h  shift=8.0-16.0  -> avail@33.39h
+[SIM]   >> Chosen worker: 8  available@33.25h
+[SIM]   SCHEDULE: order=1001 op#60 machine=5 worker=8
+                   tentative=34.02h  worker_free=33.25h
+                   START=34.02h  END=34.74h  duration=0.73h
+[SIM]   State update: machine=5 slot=0 now free@34.74h
+                     worker=8 now free@34.74h
+                     job_done_at[1001]=34.74h  next_op_idx=6/6
+[SIM]   *** ORDER 1001 COMPLETE at 34.74h (due=22.00h) ***
+       machine=1 queue: [empty]
+       machine=2 queue: [empty]
+       machine=3 queue: [empty]
+       machine=4 queue: [empty]
+       machine=5 queue: [order=1002 op#70 ready@34.6h]
+       machine=5: mach_free_slot=34.74h  earliest_ready=34.64h  worker_avail=33.39h  -> candidate_t=34.74h
+[SIM]   >> Selected machine=5  slot=0  earliest_start=34.74h
+         order=1002 op#70 due=38.0h prio=5.0 duration=0.62h ready@34.64h
+[SIM]   Rule=CR picked: order=1002 op#70
+[SIM]   Eligible workers for machine=5: ['8', '9', '10']
+         worker=8  free@34.74h  shift=8.0-16.0  -> avail@34.74h
+         worker=9  free@34.02h  shift=8.0-16.0  -> avail@34.02h
+         worker=10  free@33.39h  shift=8.0-16.0  -> avail@33.39h
+[SIM]   >> Chosen worker: 10  available@33.39h
+[SIM]   SCHEDULE: order=1002 op#70 machine=5 worker=10
+                   tentative=34.74h  worker_free=33.39h
+                   START=34.74h  END=35.37h  duration=0.62h
+[SIM]   State update: machine=5 slot=0 now free@35.37h
+                     worker=10 now free@35.37h
+                     job_done_at[1002]=35.37h  next_op_idx=7/7
+[SIM]   *** ORDER 1002 COMPLETE at 35.37h (due=38.00h) ***
+
+[SIM] ── TWT Calculation ──
+       order=1003  finish=33.25h  due=62.00h  prio=9.0  weight=1.0  tardiness=0.00h  contrib=0.00  [on time]
+       order=1001  finish=34.74h  due=22.00h  prio=1.0  weight=9.0  tardiness=12.74h  contrib=114.70  [LATE by 12.74h]
+       order=1002  finish=35.37h  due=38.00h  prio=5.0  weight=5.0  tardiness=0.00h  contrib=0.00  [on time]
+[SIM] Total TWT = 114.7031h
+=================================================================
+
