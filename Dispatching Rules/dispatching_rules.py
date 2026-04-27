@@ -240,11 +240,20 @@ def load_operations(wc_avail):
         sep="\t", low_memory=False
     )
 
-    # duration = (RestQuantity * ReportedUnitTime + ReportedSetupTime) in nanoseconds → hours
+    # Primary: PlannedQuantity * PlannedUnitTime + PlannedSetupTime (nanoseconds)
+    # Fallback: RestQuantity * ReportedUnitTime + ReportedSetupTime
+    plan_qty   = ops_df["PlannedQuantity"].fillna(0)
+    plan_unit  = ops_df["PlannedUnitTime"].fillna(0)
+    plan_setup = ops_df["PlannedSetupTime"].fillna(0)
+    planned_ns = plan_qty * plan_unit + plan_setup
+
     rest_qty   = ops_df["RestQuantity"].fillna(0)
     unit_time  = ops_df["ReportedUnitTime"].fillna(0)
     setup_time = ops_df["ReportedSetupTime"].fillna(0)
-    duration_ns = rest_qty * unit_time + setup_time
+    reported_ns = rest_qty * unit_time + setup_time
+
+    # use planned when available, fall back to reported
+    duration_ns = planned_ns.where(planned_ns > 0, reported_ns)
     ops_df["duration_h"] = duration_ns / 1e9 / 3600
 
     # fall back to DEFAULT_DURATION if result is zero or NaN
@@ -285,6 +294,23 @@ def build_jobs_and_meta(orders_df, ops_df):
         )
         .sort_values(["ManufacturingOrderId", "OperationNumber"])
     )
+
+    # ── fallback: when IDs don't match (e.g. real data with truncated IDs)
+    # derive order metadata directly from operations' planned dates ───────────
+    if len(ops) == 0:
+        ops = ops_df.copy().sort_values(["ManufacturingOrderId", "OperationNumber"])
+        _start = pd.to_datetime(ops["PlannedStartDate"],  errors="coerce")
+        _end   = pd.to_datetime(ops["PlannedFinishDate"], errors="coerce")
+        base   = _start.min()
+        ops["release_h"] = (
+            _start.groupby(ops["ManufacturingOrderId"]).transform("min") - base
+        ).dt.total_seconds() / 3600
+        ops["due_h"] = (
+            _end.groupby(ops["ManufacturingOrderId"]).transform("max") - base
+        ).dt.total_seconds() / 3600
+        ops["Priority"] = 5.0   # Priority column invalid in real export
+        ops = ops.dropna(subset=["release_h", "due_h"])
+
     # build jobs dict: one entry per order, value = ordered list of operations
     jobs = {}
     for order_id, grp in ops.groupby("ManufacturingOrderId"):
@@ -299,12 +325,12 @@ def build_jobs_and_meta(orders_df, ops_df):
 
     # build meta dict: order-level info (release, due, priority)
     meta = {}
-    for _, row in orders_df[orders_df["Id"].isin(jobs)].iterrows():
-        prio = row["Priority"]
-        meta[row["Id"]] = {
-            "release_h": float(row["release_h"]),
-            "due_h":     float(row["due_h"]),
-            "priority":  float(prio) if pd.notna(prio) else 5.0,
+    for order_id, grp in ops.groupby("ManufacturingOrderId"):
+        prio = grp["Priority"].iloc[0]
+        meta[order_id] = {
+            "release_h": float(grp["release_h"].iloc[0]),
+            "due_h":     float(grp["due_h"].iloc[0]),
+            "priority":  float(prio) if pd.notna(prio) and float(prio) < 1e8 else 5.0,
         }
 
     # keep only orders that appear in both dicts
