@@ -2,22 +2,21 @@
 LLM-based Job Shop Scheduler
 =============================
 
-Uses a local Ollama LLM (e.g. llama3) to decide the order in which jobs
-should be processed.  All machine, worker, and shift constraints come from
-the existing dispatching_rules simulator — only the *job ranking* is done
-by the LLM.
+Asks a local Ollama LLM to decide the order in which jobs should be
+processed, then runs a constraint-aware greedy scheduler to produce a
+full, human-readable schedule table.
+
+All machine capacity, worker competence, and shift constraints are
+respected — the LLM only decides which jobs go first.
 
 Setup
 -----
-1. Install Ollama:  https://ollama.com/download
-2. Pull a model:    ollama pull llama3
-3. Start Ollama:    ollama serve          (runs on http://localhost:11434)
-4. Run this file:   python llm_scheduler.py
+1. Install Ollama : https://ollama.com/download
+2. Pull a model   : ollama pull llama3
+3. Run this file  : py llm_scheduler.py
+   (Ollama will be started automatically if needed)
 
-Dependencies (pip install):
-    requests
-    pandas
-    numpy
+Dependencies: requests  pandas  numpy
 """
 
 import sys
@@ -30,6 +29,7 @@ import time
 import shutil
 
 import requests
+import pandas as pd
 import numpy as np
 
 # ── make dispatching_rules importable from the sibling folder ──────────────
@@ -49,11 +49,14 @@ _OLLAMA_FALLBACK = os.path.join(
     os.environ.get("LOCALAPPDATA", ""), "Programs", "Ollama", "ollama.exe"
 )
 
-# How many jobs to include in a single prompt.
-# Larger = better decisions but slower / may exceed context window.
-MAX_JOBS_PER_PROMPT = 30
+# Jobs shown per prompt — keep ≤50 to stay within the context window
+MAX_JOBS_PER_PROMPT = 50
 
-SHOW_PROMPT   = True       # print the prompt and raw LLM reply
+SHOW_PROMPT = True   # print the prompt + raw LLM reply
+
+DATA_DIR = os.path.join(
+    os.path.dirname(__file__), "..", "Dispatching Rules", "Data"
+)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -98,13 +101,13 @@ def ensure_ollama_running():
     print("  Warning: Ollama may not have started in time — trying anyway.")
 
 
-def ask_ollama(prompt: str, model: str = MODEL) -> str:
+def ask_ollama(prompt: str) -> str:
     """Send a prompt to Ollama and return the text response."""
     payload = {
-        "model":   model,
+        "model":   MODEL,
         "prompt":  prompt,
         "stream":  False,
-        "options": {"temperature": 0.0},   # deterministic output
+        "options": {"temperature": 0.0},
     }
     response = requests.post(OLLAMA_URL, json=payload, timeout=REQUEST_TIMEOUT)
     response.raise_for_status()
@@ -117,46 +120,36 @@ def ask_ollama(prompt: str, model: str = MODEL) -> str:
 
 def build_prompt(jobs: dict, meta: dict) -> tuple:
     """
-    Create a short, clear scheduling prompt.
-
-    Returns
-    -------
-    prompt    : str  — text to send to the LLM
-    alias_map : dict — short number (str) -> real order_id
+    Return (prompt_text, alias_map).
+    alias_map: short number string -> real order_id
     """
-    # Sort by due date so the prompt reads naturally
-    all_ids    = sorted(meta, key=lambda oid: meta[oid]["due_h"])
-    chosen_ids = all_ids[:MAX_JOBS_PER_PROMPT]
-
-    # Use short numbers (1, 2, 3 …) in the prompt to keep it compact
-    alias_map = {str(i + 1): oid for i, oid in enumerate(chosen_ids)}
+    sorted_ids = sorted(meta, key=lambda oid: meta[oid]["due_h"])
+    chosen     = sorted_ids[:MAX_JOBS_PER_PROMPT]
+    alias_map  = {str(i + 1): oid for i, oid in enumerate(chosen)}
 
     rows = []
     for short_id, oid in alias_map.items():
-        m     = meta[oid]
-        n_ops = len(jobs.get(oid, []))
+        m = meta[oid]
         rows.append(
             f"  Job {int(short_id):>3}:  priority={int(m['priority'])}  "
-            f"due_in={m['due_h']:>7.1f} h  operations={n_ops}"
+            f"due_in={m['due_h']:>7.1f} h  "
+            f"operations={len(jobs.get(oid, []))}"
         )
 
     prompt = (
         "You are a manufacturing scheduling expert.\n"
-        "Your objective is to minimise the number of late jobs.\n\n"
+        "Your goal is to minimise the number of late jobs.\n\n"
         "Field meanings:\n"
         "  priority  : 1 = most urgent,  9 = least urgent\n"
-        "  due_in    : hours from now until the job must be finished\n"
-        "  operations: number of sequential steps on different machines\n\n"
-        "Jobs to schedule:\n"
-        + "\n".join(rows)
-        + "\n\n"
-        "Task: rank these jobs from FIRST (process earliest) to LAST.\n"
-        "Consider both urgency (due_in) and priority together.\n\n"
-        "Output ONLY a JSON array of the job numbers in your recommended order.\n"
-        "Example format: [3, 1, 5, 2, 4]\n"
-        "No explanation, no extra text — just the JSON array."
+        "  due_in    : hours until the deadline\n"
+        "  operations: number of sequential steps the job needs\n\n"
+        "Jobs:\n" + "\n".join(rows) + "\n\n"
+        "Rank these jobs from FIRST (start earliest) to LAST.\n"
+        "A job with a tighter deadline and higher urgency should go first.\n\n"
+        "Output ONLY a JSON array of job numbers in your recommended order.\n"
+        "Example: [3, 1, 5, 2, 4]\n"
+        "No explanation — just the JSON array."
     )
-
     return prompt, alias_map
 
 
@@ -182,140 +175,142 @@ def parse_llm_order(response: str, alias_map: dict) -> list:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 4.  TRANSLATE LLM ORDER → PRIORITIES  →  SIMULATE
+# 4.  APPLY LLM RANKING → SIMULATE → RETURN SCHEDULE
 # ─────────────────────────────────────────────────────────────────────────────
 
-def run_llm_scheduler(
-    jobs, meta, wc_units=None, wc_workers=None, worker_info=None, day_absences=None
-):
+def run_llm_schedule(jobs, meta, wc_units, wc_workers, worker_info):
     """
-    Full pipeline:
-      1. Ask the LLM to rank the jobs.
-      2. Convert the ranking into numeric priorities (1 = top priority).
-      3. Run the event-driven simulator with the PRIO dispatching rule.
-         → All machine capacity, worker competences, and shift constraints
-           are enforced exactly as in the traditional rules.
-
-    Returns (schedule, twt, completion) — same format as dr.simulate().
+    1. Ask LLM to rank jobs.
+    2. Convert ranking to numeric priorities (1.0 = highest, 9.0 = lowest).
+    3. Run the constraint-aware simulator (PRIO rule) to assign real times.
+    Returns (schedule, completion, llm_meta).
     """
+    ensure_ollama_running()
     prompt, alias_map = build_prompt(jobs, meta)
 
     if SHOW_PROMPT:
         sep = "─" * 64
-        print(f"\n{sep}\nPROMPT SENT TO LLM ({MODEL}):\n{sep}\n{prompt}\n{sep}")
+        print(f"\n{sep}\nPROMPT → LLM ({MODEL}):\n{sep}\n{prompt}\n{sep}")
 
-    # ── Query the LLM ────────────────────────────────────────────────────────
     try:
-        ensure_ollama_running()
-        raw_response = ask_ollama(prompt)
+        raw = ask_ollama(prompt)
     except requests.exceptions.ConnectionError:
         print(
-            "\n[ERROR] Cannot connect to Ollama.\n"
-            f"  Make sure Ollama is installed: https://ollama.com/download\n"
-            f"  Then pull the model:           ollama pull {MODEL}\n"
+            f"\n[ERROR] Cannot connect to Ollama.\n"
+            f"  Install from: https://ollama.com/download\n"
+            f"  Then run:     ollama pull {MODEL}\n"
         )
         sys.exit(1)
     except requests.exceptions.Timeout:
-        print(f"\n[ERROR] Ollama request timed out after {REQUEST_TIMEOUT} s.")
+        print(f"\n[ERROR] Ollama timed out after {REQUEST_TIMEOUT} s.")
         sys.exit(1)
 
     if SHOW_PROMPT:
-        print(f"LLM RAW RESPONSE:\n{raw_response}\n{'─'*64}")
+        print(f"LLM RESPONSE:\n{raw}\n{'─'*64}")
 
-    llm_order = parse_llm_order(raw_response, alias_map)
-    print(f"  LLM ranked {len(llm_order)} jobs "
-          f"(out of {len(meta)} total; rest get lowest priority).")
+    llm_order = parse_llm_order(raw, alias_map)
+    print(f"  LLM ranked {len(llm_order)} jobs.")
 
-    # ── Assign LLM-derived numeric priorities ────────────────────────────────
-    #   Rank 0 (first in list)  → priority 1.0 (highest)
-    #   Rank n-1 (last in list) → priority 9.0 (lowest)
-    llm_meta  = {oid: dict(m) for oid, m in meta.items()}
-    n         = max(len(llm_order) - 1, 1)
-
+    # Convert rank → priority
+    llm_meta = {oid: dict(m) for oid, m in meta.items()}
+    n = max(len(llm_order) - 1, 1)
     for rank, oid in enumerate(llm_order):
         llm_meta[oid]["priority"] = round((rank / n) * 8.0 + 1.0, 2)
-
-    # Jobs the LLM did not mention → lowest priority
-    mentioned = set(llm_order)
     for oid in llm_meta:
-        if oid not in mentioned:
+        if oid not in set(llm_order):
             llm_meta[oid]["priority"] = 9.0
 
-    # ── Run the existing simulator with PRIO rule ────────────────────────────
-    return dr.simulate(
-        jobs, llm_meta, "PRIO",
-        wc_units, wc_workers, worker_info, day_absences
+    dr.VERBOSE = False
+    schedule, _, completion = dr.simulate(
+        jobs, llm_meta, "PRIO", wc_units, wc_workers, worker_info
     )
+    return schedule, completion, llm_meta
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 5.  MAIN
+# 5.  PRINT SCHEDULE TABLE
+# ─────────────────────────────────────────────────────────────────────────────
+
+def fmt_dt(base_date, hours: float) -> str:
+    dt = base_date + pd.Timedelta(hours=hours)
+    return dt.strftime("%a %b %d %H:%M")
+
+
+def print_schedule_table(schedule, meta, wc_df, base_date):
+    """Print the schedule as a numbered table like the example."""
+    wc_names = dict(zip(wc_df["Id"], wc_df["Description"]))
+    sorted_sched = sorted(schedule, key=lambda x: (x["start"], str(x["machine"])))
+
+    C_NUM = 4;  C_MCH = 14;  C_ORD = 12;  C_OP = 4
+    C_WRK = 8;  C_DT  = 19;  C_PRO =  5;  C_STA = 6
+
+    header = (
+        f"{'#':>{C_NUM}}  {'Machine':<{C_MCH}}  {'Order':<{C_ORD}}  "
+        f"{'Op':>{C_OP}}  {'Worker':<{C_WRK}}  "
+        f"{'Start':<{C_DT}}  {'End':<{C_DT}}  "
+        f"{'Prio':>{C_PRO}}  {'Status'}"
+    )
+    sep = (f"{'---':>{C_NUM}}  {'--------':<{C_MCH}}  {'------':<{C_ORD}}  "
+           f"{'----':>{C_OP}}  {'--------':<{C_WRK}}  "
+           f"{'-------------------':<{C_DT}}  {'-------------------':<{C_DT}}  "
+           f"{'-----':>{C_PRO}}  {'------'}")
+
+    print()
+    print("=" * len(header))
+    print("  LLM-Generated Schedule")
+    print("=" * len(header))
+    print(header)
+    print(sep)
+
+    for i, entry in enumerate(sorted_sched, start=1):
+        oid    = entry["order_id"]
+        m_name = wc_names.get(entry["machine"], str(entry["machine"]))
+        worker = str(entry["worker"]) if entry["worker"] else "-"
+        prio   = int(meta[oid]["priority"])
+        status = "LATE" if entry["end"] > meta[oid]["due_h"] + 1e-6 else "OK"
+        start  = fmt_dt(base_date, entry["start"])
+        end    = fmt_dt(base_date, entry["end"])
+        oid_str = str(oid)
+        if len(oid_str) > C_ORD:
+            oid_str = "\u2026" + oid_str[-(C_ORD - 1):]
+        print(
+            f"{i:>{C_NUM}}  {m_name:<{C_MCH}}  {oid_str:<{C_ORD}}  "
+            f"{int(entry['op_num']):>{C_OP}}  {worker:<{C_WRK}}  "
+            f"{start:<{C_DT}}  {end:<{C_DT}}  "
+            f"{prio:>{C_PRO}}  {status}"
+        )
+
+    late = sum(1 for e in sorted_sched if e["end"] > meta[e["order_id"]]["due_h"] + 1e-6)
+    print()
+    print(f"  Total operations : {len(sorted_sched)}")
+    print(f"  Late jobs        : {late}")
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 6.  MAIN
 # ─────────────────────────────────────────────────────────────────────────────
 
 def main():
-    # ── Load data ────────────────────────────────────────────────────────────
     print("Loading manufacturing data ...")
     jobs, meta, wc_df, wc_avail, wc_units, wc_workers, worker_info = \
         dr.load_and_preprocess(absent_workers=set())
-    print(f"  {len(jobs)} orders  |  "
-          f"{sum(len(v) for v in jobs.values())} operations  |  "
-          f"{len({op['machine'] for ops in jobs.values() for op in ops})} work centres")
+    n_ops = sum(len(v) for v in jobs.values())
+    n_wc  = len({op["machine"] for ops in jobs.values() for op in ops})
+    print(f"  {len(jobs)} orders  |  {n_ops} operations  |  {n_wc} work centres")
 
-    # ── Run traditional dispatching rules as a baseline ──────────────────────
-    print("\nRunning traditional dispatching rules (baseline) ...")
-    dr.VERBOSE = False   # silence per-operation log during baseline runs
+    # Base date for readable datetime output
+    orders_tmp = pd.read_csv(
+        os.path.join(DATA_DIR, "ManufacturingOrders.tsv"), sep="\t"
+    )
+    orders_tmp["StartDate"] = pd.to_datetime(orders_tmp["StartDate"], errors="coerce")
+    base_date = orders_tmp["StartDate"].min()
 
-    trad_results = {}
-    for rule in dr.RULES:
-        sched, twt, comp = dr.simulate(
-            jobs, meta, rule, wc_units, wc_workers, worker_info
-        )
-        late = sum(1 for oid, ct in comp.items() if ct > meta[oid]["due_h"])
-        avg_tard = (
-            float(np.mean([max(0.0, ct - meta[oid]["due_h"]) for oid, ct in comp.items()]))
-            if comp else 0.0
-        )
-        trad_results[rule] = {"twt": twt, "late": late, "avg_tard": avg_tard}
-        print(f"  {rule:<6}  TWT={twt:>10.1f} h  late={late}")
-
-    # ── Run LLM scheduler ────────────────────────────────────────────────────
     print(f"\nQuerying local LLM ({MODEL}) for job ranking ...")
-    llm_sched, llm_twt, llm_comp = run_llm_scheduler(
+    schedule, completion, llm_meta = run_llm_schedule(
         jobs, meta, wc_units, wc_workers, worker_info
     )
 
-    llm_late     = sum(1 for oid, ct in llm_comp.items() if ct > meta[oid]["due_h"])
-    llm_avg_tard = (
-        float(np.mean([max(0.0, ct - meta[oid]["due_h"]) for oid, ct in llm_comp.items()]))
-        if llm_comp else 0.0
-    )
-
-    # ── Print comparison table ───────────────────────────────────────────────
-    print()
-    print("=" * 62)
-    print("  Scheduling Results Comparison")
-    print("=" * 62)
-    print(f"  {'Method':<12}  {'TWT (h)':>12}  {'Late jobs':>10}  {'Avg tard (h)':>13}")
-    print(f"  {'-'*12}  {'-'*12}  {'-'*10}  {'-'*13}")
-
-    for rule, r in trad_results.items():
-        print(f"  {rule:<12}  {r['twt']:>12.1f}  {r['late']:>10}  {r['avg_tard']:>13.1f}")
-
-    print(f"  {'LLM (llama)':<12}  {llm_twt:>12.1f}  {llm_late:>10}  {llm_avg_tard:>13.1f}")
-    print("=" * 62)
-
-    best_trad_rule = min(trad_results, key=lambda r: trad_results[r]["twt"])
-    best_trad_twt  = trad_results[best_trad_rule]["twt"]
-
-    print()
-    if llm_twt <= best_trad_twt:
-        pct = ((best_trad_twt - llm_twt) / max(best_trad_twt, 1e-9)) * 100
-        print(f"  LLM schedule is BETTER by {pct:.1f}%  "
-              f"(vs best traditional rule: {best_trad_rule})")
-    else:
-        pct = ((llm_twt - best_trad_twt) / max(best_trad_twt, 1e-9)) * 100
-        print(f"  LLM schedule is {pct:.1f}% worse than best traditional rule ({best_trad_rule}).")
-        print("  Try a larger model or increase MAX_JOBS_PER_PROMPT for better results.")
+    print_schedule_table(schedule, llm_meta, wc_df, base_date)
 
 
 if __name__ == "__main__":
