@@ -140,7 +140,7 @@ def build_prompt(jobs: dict, meta: dict) -> tuple:
         "You are a manufacturing scheduling expert.\n"
         "Your goal is to minimise the number of late jobs.\n\n"
         "Field meanings:\n"
-        "  priority  : 1 = most urgent,  9 = least urgent\n"
+        "  priority  : 9 = most urgent,  1 = least urgent\n"
         "  due_in    : hours until the deadline\n"
         "  operations: number of sequential steps the job needs\n\n"
         "Jobs:\n" + "\n".join(rows) + "\n\n"
@@ -220,9 +220,23 @@ def run_llm_schedule(jobs, meta, wc_units, wc_workers, worker_info):
         if oid not in set(llm_order):
             llm_meta[oid]["priority"] = 9.0
 
+    # ── Enforce 08:00-16:00 on ALL machines ─────────────────────────────────
+    # Machines that have no qualified workers in wc_workers run 24/7 by default.
+    # Add a unique synthetic "shift worker" per such machine so the simulator
+    # enforces the 08:00-16:00 window for them too.
+    aug_wc_workers  = {m: list(wl) for m, wl in wc_workers.items()}
+    aug_worker_info = {w: dict(i)  for w, i  in worker_info.items()}
+
+    all_machines = {op["machine"] for ops in jobs.values() for op in ops}
+    for m in all_machines:
+        if m not in aug_wc_workers:
+            synthetic = f"__shift_{m}__"
+            aug_wc_workers[m]  = [synthetic]
+            aug_worker_info[synthetic] = {"shift_start": 8.0, "shift_end": 16.0}
+
     dr.VERBOSE = False
     schedule, _, completion = dr.simulate(
-        jobs, llm_meta, "PRIO", wc_units, wc_workers, worker_info
+        jobs, llm_meta, "PRIO", wc_units, aug_wc_workers, aug_worker_info
     )
     return schedule, completion, llm_meta
 
@@ -265,7 +279,7 @@ def print_schedule_table(schedule, meta, wc_df, base_date):
     for i, entry in enumerate(sorted_sched, start=1):
         oid    = entry["order_id"]
         m_name = wc_names.get(entry["machine"], str(entry["machine"]))
-        worker = str(entry["worker"]) if entry["worker"] else "-"
+        worker = str(entry["worker"]) if entry["worker"] and not str(entry["worker"]).startswith("__shift_") else "-"
         prio   = int(meta[oid]["priority"])
         status = "LATE" if entry["end"] > meta[oid]["due_h"] + 1e-6 else "OK"
         start  = fmt_dt(base_date, entry["start"])
@@ -298,8 +312,9 @@ def main():
     n_wc  = len({op["machine"] for ops in jobs.values() for op in ops})
     print(f"  {len(jobs)} orders  |  {n_ops} operations  |  {n_wc} work centres")
 
-    # Base date = today at 08:00 (first job is always released this morning)
-    base_date = pd.Timestamp.now().normalize() + pd.Timedelta(hours=8)
+    # Base date = today midnight so that wall-clock shift math works correctly.
+    # Workers with shift_start=8.0 become available at t=8.0 = today 08:00.
+    base_date = pd.Timestamp.now().normalize()   # today at 00:00:00
 
     print(f"\nQuerying local LLM ({MODEL}) for job ranking ...")
     schedule, completion, llm_meta = run_llm_schedule(
