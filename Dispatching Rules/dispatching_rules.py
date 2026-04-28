@@ -191,13 +191,13 @@ def next_shift_start(t, shift_start_h, shift_end_h):
     return on_today_start + 24.0
 
 
-def next_available_time(t, shift_start_h, shift_end_h, absent_weekdays=None):
+def next_available_time(t, shift_start_h, shift_end_h, absent_weekdays=None, start_weekday=0):
     """
     Like next_shift_start but also skips:
       - weekends  (day_num % 7 >= 5)
       - days when the worker is absent  (weekday in absent_weekdays)
 
-    Day 0 of the simulation is assumed to be Monday.
+    start_weekday   : weekday of simulation day 0 (0=Mon…6=Sun). Default 0 = Monday.
     absent_weekdays : set of 0-4  (0=Mon, 1=Tue, 2=Wed, 3=Thu, 4=Fri)
                       meaning the worker does not come in on those days.
     Absence only applies to the first work-week (day_num 0-6).
@@ -209,8 +209,8 @@ def next_available_time(t, shift_start_h, shift_end_h, absent_weekdays=None):
 
     for _ in range(60):                # safety cap — max 60 days of searching
         day_num = int(t // 24)
-        weekday = day_num % 7          # 0=Mon … 6=Sun
-        tod     = t - day_num * 24     # current time-of-day
+        weekday = (day_num + start_weekday) % 7   # account for actual starting weekday
+        tod     = t - day_num * 24                # current time-of-day
 
         # skip weekends — jump to next Monday's shift start
         if weekday >= 5:
@@ -443,7 +443,7 @@ def pick_next(queue, current_time, rule):
 # 3.  EVENT-DRIVEN SIMULATOR
 # ─────────────────────────────────────────────────────────────────────────────
 
-def simulate(jobs, meta, rule, wc_units=None, wc_workers=None, worker_info=None, day_absences=None):
+def simulate(jobs, meta, rule, wc_units=None, wc_workers=None, worker_info=None, day_absences=None, start_weekday=0):
     """
     Simulate the job shop using an event-driven approach.
 
@@ -556,7 +556,8 @@ def simulate(jobs, meta, rule, wc_units=None, wc_workers=None, worker_info=None,
                         worker_free.get(w, 0.0),
                         worker_info.get(w, {}).get("shift_start", 0.0) if worker_info else 0.0,
                         worker_info.get(w, {}).get("shift_end",  24.0) if worker_info else 24.0,
-                        day_absences.get(w, set()) if day_absences else set()
+                        day_absences.get(w, set()) if day_absences else set(),
+                        start_weekday
                     )
                     for w in eligible
                 )
@@ -595,7 +596,7 @@ def simulate(jobs, meta, rule, wc_units=None, wc_workers=None, worker_info=None,
                 ss       = info.get("shift_start", 0.0)
                 se       = info.get("shift_end",   24.0)
                 abs_days = day_absences.get(w, set()) if day_absences else set()
-                return next_available_time(free_at, ss, se, abs_days)
+                return next_available_time(free_at, ss, se, abs_days, start_weekday)
             best_worker       = min(eligible, key=worker_earliest)
             worker_start_free = worker_earliest(best_worker)
         else:
@@ -609,9 +610,18 @@ def simulate(jobs, meta, rule, wc_units=None, wc_workers=None, worker_info=None,
             ss       = info.get("shift_start", 0.0)
             se       = info.get("shift_end",   24.0)
             abs_days = day_absences.get(best_worker, set()) if day_absences else set()
-            tentative = next_available_time(tentative, ss, se, abs_days)
+            tentative = next_available_time(tentative, ss, se, abs_days, start_weekday)
         start = max(tentative, worker_start_free)
-        end   = start + op["duration"]
+        # Defer to next shift if the operation would overflow the current shift-end
+        # (only applies to operations short enough to fit within one full shift).
+        if best_worker and worker_info:
+            shift_len = se - ss
+            if 0 < op["duration"] <= shift_len:
+                day_num_s   = int(start // 24)
+                shift_end_s = day_num_s * 24 + se
+                if start + op["duration"] > shift_end_s + 1e-6:
+                    start = next_available_time(shift_end_s + 0.001, ss, se, abs_days, start_weekday)
+        end = start + op["duration"]
 
         if VERBOSE:
             _log(f"\n--- START  order_id={oid}  op_num={op['op_num']}  machine={best_m}  worker={best_worker}  start={start}  duration={op['duration']} ---")
@@ -671,7 +681,7 @@ def simulate(jobs, meta, rule, wc_units=None, wc_workers=None, worker_info=None,
 # 4.  COMPARE ALL RULES
 # ─────────────────────────────────────────────────────────────────────────────
 
-def compare_all_rules(jobs, meta, wc_units=None, wc_workers=None, worker_info=None, day_absences=None):
+def compare_all_rules(jobs, meta, wc_units=None, wc_workers=None, worker_info=None, day_absences=None, start_weekday=0):
     """Run every dispatching rule and print a comparison table."""
 
     # clear the log file at the start of each full run
@@ -693,7 +703,7 @@ def compare_all_rules(jobs, meta, wc_units=None, wc_workers=None, worker_info=No
     results = {}
 
     for rule in RULES:
-        schedule, twt, completion = simulate(jobs, meta, rule, wc_units, wc_workers, worker_info, day_absences)
+        schedule, twt, completion = simulate(jobs, meta, rule, wc_units, wc_workers, worker_info, day_absences, start_weekday)
 
         late_orders = [
             oid for oid, ct in completion.items()

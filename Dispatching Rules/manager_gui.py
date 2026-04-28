@@ -401,14 +401,15 @@ class ManagerApp:
             self._last_worker_info = worker_info
             self._last_day_abs     = partial_absences
 
-            # Monday of the current work-week as the schedule base date
+            # Use today as the schedule base date.
             base_dt = pd.Timestamp.now().normalize()
-            base_dt = base_dt - pd.Timedelta(days=base_dt.dayofweek)  # Monday
+            start_weekday = base_dt.weekday()   # 0=Mon, 1=Tue, ...
             self.last_base_dt = base_dt
 
             results, best_rule = dr.compare_all_rules(
                 jobs, meta, wc_units, wc_workers, worker_info,
-                day_absences=partial_absences
+                day_absences=partial_absences,
+                start_weekday=start_weekday,
             )
 
             self.last_results = results

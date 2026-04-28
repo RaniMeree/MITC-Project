@@ -178,7 +178,7 @@ def parse_llm_order(response: str, alias_map: dict) -> list:
 # 4.  APPLY LLM RANKING → SIMULATE → RETURN SCHEDULE
 # ─────────────────────────────────────────────────────────────────────────────
 
-def run_llm_schedule(jobs, meta, wc_units, wc_workers, worker_info):
+def run_llm_schedule(jobs, meta, wc_units, wc_workers, worker_info, start_weekday=0):
     """
     1. Ask LLM to rank jobs.
     2. Convert ranking to numeric priorities (1.0 = highest, 9.0 = lowest).
@@ -236,7 +236,8 @@ def run_llm_schedule(jobs, meta, wc_units, wc_workers, worker_info):
 
     dr.VERBOSE = False
     schedule, _, completion = dr.simulate(
-        jobs, llm_meta, "PRIO", wc_units, aug_wc_workers, aug_worker_info
+        jobs, llm_meta, "PRIO", wc_units, aug_wc_workers, aug_worker_info,
+        start_weekday=start_weekday
     )
     return schedule, completion, llm_meta
 
@@ -316,9 +317,10 @@ def main():
     # Workers with shift_start=8.0 become available at t=8.0 = today 08:00.
     base_date = pd.Timestamp.now().normalize()   # today at 00:00:00
 
+    start_weekday = base_date.weekday()   # 0=Mon, 1=Tue, ...
     print(f"\nQuerying local LLM ({MODEL}) for job ranking ...")
     schedule, completion, llm_meta = run_llm_schedule(
-        jobs, meta, wc_units, wc_workers, worker_info
+        jobs, meta, wc_units, wc_workers, worker_info, start_weekday
     )
 
     print_schedule_table(schedule, llm_meta, wc_df, base_date)
