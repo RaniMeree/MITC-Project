@@ -1,26 +1,69 @@
-﻿import sys, os, re, json
+﻿import os, re, json
 import requests
 import pandas as pd
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "Dispatching Rules"))
-import dispatching_rules as dr
-
+DATA       = os.path.join(os.path.dirname(__file__), "..", "Dispatching Rules", "Data")
 OLLAMA_URL = "http://localhost:11434/api/generate"
 MODEL      = "llama3"
+SHIFT_S, SHIFT_E = 8.0, 17.0   # 08:00 - 17:00 (1-hour grace)
 
 
-def ask_ollama(prompt):
-    r = requests.post(OLLAMA_URL, json={"model": MODEL, "prompt": prompt,
-                      "stream": False, "options": {"temperature": 0.0}})
-    r.raise_for_status()
-    return r.json()["response"]
+def next_shift(t):
+    day = int(t // 24)
+    tod = t - day * 24
+    if tod < SHIFT_S:  return day * 24 + SHIFT_S
+    if tod >= SHIFT_E: return (day + 1) * 24 + SHIFT_S
+    return t
+
+
+def load_data():
+    orders = pd.read_csv(f"{DATA}/ManufacturingOrders.tsv", sep="\t",
+                         parse_dates=["StartDate", "FinishDate"])
+    ops    = pd.read_csv(f"{DATA}/ManufacturingOperations.tsv", sep="\t", low_memory=False)
+    wc     = pd.read_csv(f"{DATA}/WorkCenters.tsv", sep="\t")
+    comp   = pd.read_csv(f"{DATA}/WorkerCompetences.csv")
+
+    base = pd.Timestamp.now().normalize()
+    orders["release_h"] = (orders["StartDate"]  - base).dt.total_seconds() / 3600
+    orders["due_h"]     = (orders["FinishDate"] - base).dt.total_seconds() / 3600
+    orders = orders.dropna(subset=["release_h", "due_h"])
+
+    ops["duration_h"] = (
+        (ops["PlannedQuantity"].fillna(0) * ops["PlannedUnitTime"].fillna(0)
+         + ops["PlannedSetupTime"].fillna(0)) / 1e9 / 3600
+    ).clip(lower=0.5)
+
+    merged = ops.merge(orders[["Id", "release_h", "due_h", "Priority"]],
+                       left_on="ManufacturingOrderId", right_on="Id")
+
+    jobs, meta = {}, {}
+    for oid, grp in merged.groupby("ManufacturingOrderId"):
+        grp = grp.sort_values("OperationNumber")
+        jobs[oid] = [{"op_num": r["OperationNumber"], "machine": r["WorkCenterId"],
+                      "duration": r["duration_h"]} for _, r in grp.iterrows()]
+        meta[oid] = {"release_h": float(grp["release_h"].iloc[0]),
+                     "due_h":     float(grp["due_h"].iloc[0]),
+                     "priority":  float(grp["Priority"].iloc[0])}
+
+    # Build machine -> [comp-2 worker IDs]
+    wc_num_to_id = dict(zip(wc["Number"].astype(int), wc["Id"]))
+    worker_col   = comp.columns[0]
+    comp_long    = comp.melt(id_vars=worker_col, var_name="wc_num", value_name="level")
+    comp_long["level"] = pd.to_numeric(comp_long["level"], errors="coerce").fillna(0)
+    wc_workers = {}
+    for _, row in comp_long[comp_long["level"] == 2].iterrows():
+        wc_id = wc_num_to_id.get(int(row["wc_num"]))
+        if wc_id:
+            wc_workers.setdefault(wc_id, []).append(str(row[worker_col]))
+
+    return jobs, meta, dict(zip(wc["Id"], wc["Description"])), wc_workers, base
 
 
 def build_prompt(jobs, meta):
     alias_map = {str(i + 1): oid for i, oid in enumerate(meta)}
     rows = [
-        f"  Job {int(k):>3}:  priority={int(meta[oid]['priority'])}  "
-        f"due_in={meta[oid]['due_h']:>7.1f} h  operations={len(jobs.get(oid, []))}"
+        f"  Job {int(k):>3}: priority={int(meta[oid]['priority'])}  "
+        f"due_in={meta[oid]['due_h']:>7.1f}h  operations={len(jobs.get(oid, []))}"
         for k, oid in alias_map.items()
     ]
     prompt = (
@@ -47,31 +90,52 @@ def build_prompt(jobs, meta):
     return prompt, alias_map
 
 
+def schedule_jobs(llm_order, jobs, meta, wc_workers):
+    machine_free, worker_free = {}, {}
+    schedule = []
+    for oid in llm_order:
+        t = max(meta[oid]["release_h"], 0.0)
+        for op in jobs[oid]:
+            m     = op["machine"]
+            start = next_shift(max(t, machine_free.get(m, 0.0)))
+            workers = wc_workers.get(m, [])
+            if workers:
+                best_w = min(workers, key=lambda w: next_shift(worker_free.get(w, 0.0)))
+                start  = next_shift(max(start, worker_free.get(best_w, 0.0)))
+            else:
+                best_w = None
+            # defer if op would finish more than 1h past shift end
+            day = int(start // 24)
+            if start + op["duration"] > day * 24 + SHIFT_E + 1.0:
+                start = next_shift(day * 24 + SHIFT_E + 0.001)
+            end = start + op["duration"]
+            machine_free[m] = end
+            if best_w:
+                worker_free[best_w] = end
+            t = end
+            schedule.append({"order_id": oid, "op_num": op["op_num"],
+                              "machine": m, "worker": best_w, "start": start, "end": end})
+    return schedule
+
+
 if __name__ == "__main__":
-    jobs, meta, wc_df, _, wc_units, wc_workers, worker_info = dr.load_and_preprocess(absent_workers=set())
+    jobs, meta, wc_names, wc_workers, base = load_data()
 
     prompt, alias_map = build_prompt(jobs, meta)
     print(f"PROMPT:\n{prompt}\n")
 
-    raw = ask_ollama(prompt)
+    raw = requests.post(OLLAMA_URL, json={"model": MODEL, "prompt": prompt,
+                        "stream": False, "options": {"temperature": 0.0}}).json()["response"]
     print(f"LLM RESPONSE:\n{raw}\n")
 
-    match = re.search(r"\[[\s\d,]+\]", raw)
+    match     = re.search(r"\[[\s\d,]+\]", raw)
     llm_order = [alias_map[str(s)] for s in json.loads(match.group()) if str(s) in alias_map]
+    llm_order += [oid for oid in meta if oid not in set(llm_order)]
 
-    # Assign priorities based on LLM ranking (1st = priority 1.0, last = 9.0)
-    n = max(len(llm_order) - 1, 1)
-    for rank, oid in enumerate(llm_order):
-        meta[oid]["priority"] = round((rank / n) * 8.0 + 1.0, 2)
+    schedule = schedule_jobs(llm_order, jobs, meta, wc_workers)
 
-    dr.VERBOSE = False
-    base_date     = pd.Timestamp.now().normalize()
-    schedule, *_ = dr.simulate(jobs, meta, "PRIO", wc_units, wc_workers, worker_info,
-                                start_weekday=base_date.weekday())
-
-    wc_names = dict(zip(wc_df["Id"], wc_df["Description"]))
     def fmt(h):
-        return (base_date + pd.Timedelta(hours=h)).strftime("%a %b %d %H:%M")
+        return (base + pd.Timedelta(hours=h)).strftime("%a %b %d %H:%M")
 
     print(f"  {'#':>4}  {'Machine':<14}  {'Order':<12}  {'Op':>4}  {'Worker':<8}  {'Start':<18}  {'End':<18}  {'Prio':>5}  Status")
     print(f"  {'-'*4}  {'-'*14}  {'-'*12}  {'-'*4}  {'-'*8}  {'-'*18}  {'-'*18}  {'-'*5}  ------")
