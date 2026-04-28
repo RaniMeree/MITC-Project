@@ -1,141 +1,51 @@
-"""
-LLM-based Job Shop Scheduler
-=============================
-
-Asks a local Ollama LLM to decide the order in which jobs should be
-processed, then runs a constraint-aware greedy scheduler to produce a
-full, human-readable schedule table.
-
-All machine capacity, worker competence, and shift constraints are
-respected — the LLM only decides which jobs go first.
-
-Setup
------
-1. Install Ollama : https://ollama.com/download
-2. Pull a model   : ollama pull llama3
-3. Run this file  : py llm_scheduler.py
-   (Ollama will be started automatically if needed)
-
-Dependencies: requests  pandas  numpy
-"""
-
-import sys
-import os
-import re
-import json
-
-import subprocess
-import time
-import shutil
-
+﻿import sys, os, re, json, subprocess, time, shutil
 import requests
 import pandas as pd
-import numpy as np
 
-# ── make dispatching_rules importable from the sibling folder ──────────────
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "Dispatching Rules"))
 import dispatching_rules as dr
 
-# ─────────────────────────────────────────────────────────────────────────────
-# CONFIGURATION
-# ─────────────────────────────────────────────────────────────────────────────
-
-OLLAMA_URL    = "http://localhost:11434/api/generate"
-MODEL         = "llama3"   # change to whichever model you have pulled, e.g. "mistral"
-REQUEST_TIMEOUT = 180      # seconds to wait for a response
-
-# Common Windows install path for Ollama when it is not on PATH
-_OLLAMA_FALLBACK = os.path.join(
-    os.environ.get("LOCALAPPDATA", ""), "Programs", "Ollama", "ollama.exe"
-)
-
-# Jobs shown per prompt — keep ≤50 to stay within the context window
-MAX_JOBS_PER_PROMPT = 50
-
-SHOW_PROMPT = True   # print the prompt + raw LLM reply
-
-DATA_DIR = os.path.join(
-    os.path.dirname(__file__), "..", "Dispatching Rules", "Data"
-)
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# 1.  OLLAMA HELPER
-# ─────────────────────────────────────────────────────────────────────────────
-
-def _ollama_exe() -> str:
-    """Return path to ollama executable (PATH or Windows fallback)."""
-    found = shutil.which("ollama")
-    if found:
-        return found
-    if os.path.isfile(_OLLAMA_FALLBACK):
-        return _OLLAMA_FALLBACK
-    return "ollama"   # let it fail with a clear message
+OLLAMA_URL  = "http://localhost:11434/api/generate"
+MODEL       = "llama3"
+TIMEOUT     = 180
+MAX_JOBS    = 50
+_OLLAMA_EXE = os.path.join(os.environ.get("LOCALAPPDATA", ""), "Programs", "Ollama", "ollama.exe")
 
 
 def ensure_ollama_running():
-    """Start Ollama server if it is not already reachable."""
     try:
         requests.get("http://localhost:11434", timeout=3)
-        return   # already up
+        return
     except Exception:
         pass
-
-    exe = _ollama_exe()
-    print(f"  Starting Ollama ({exe}) ...")
-    subprocess.Popen(
-        [exe, "serve"],
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-        creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
-    )
-    # wait up to 10 s for it to become ready
+    exe = shutil.which("ollama") or _OLLAMA_EXE
+    print(f"Starting Ollama ({exe}) ...")
+    subprocess.Popen([exe, "serve"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                     creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
     for _ in range(20):
         time.sleep(0.5)
         try:
             requests.get("http://localhost:11434", timeout=2)
-            print("  Ollama is ready.")
             return
         except Exception:
             pass
-    print("  Warning: Ollama may not have started in time — trying anyway.")
 
 
-def ask_ollama(prompt: str) -> str:
-    """Send a prompt to Ollama and return the text response."""
-    payload = {
-        "model":   MODEL,
-        "prompt":  prompt,
-        "stream":  False,
-        "options": {"temperature": 0.0},
-    }
-    response = requests.post(OLLAMA_URL, json=payload, timeout=REQUEST_TIMEOUT)
-    response.raise_for_status()
-    return response.json()["response"]
+def ask_ollama(prompt):
+    r = requests.post(OLLAMA_URL, json={"model": MODEL, "prompt": prompt,
+                      "stream": False, "options": {"temperature": 0.0}}, timeout=TIMEOUT)
+    r.raise_for_status()
+    return r.json()["response"]
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# 2.  BUILD PROMPT
-# ─────────────────────────────────────────────────────────────────────────────
-
-def build_prompt(jobs: dict, meta: dict) -> tuple:
-    """
-    Return (prompt_text, alias_map).
-    alias_map: short number string -> real order_id
-    """
-    sorted_ids = sorted(meta, key=lambda oid: meta[oid]["due_h"])
-    chosen     = sorted_ids[:MAX_JOBS_PER_PROMPT]
-    alias_map  = {str(i + 1): oid for i, oid in enumerate(chosen)}
-
-    rows = []
-    for short_id, oid in alias_map.items():
-        m = meta[oid]
-        rows.append(
-            f"  Job {int(short_id):>3}:  priority={int(m['priority'])}  "
-            f"due_in={m['due_h']:>7.1f} h  "
-            f"operations={len(jobs.get(oid, []))}"
-        )
-
+def build_prompt(jobs, meta):
+    chosen    = sorted(meta, key=lambda oid: meta[oid]["due_h"])[:MAX_JOBS]
+    alias_map = {str(i + 1): oid for i, oid in enumerate(chosen)}
+    rows      = [
+        f"  Job {int(k):>3}:  priority={int(meta[oid]['priority'])}  "
+        f"due_in={meta[oid]['due_h']:>7.1f} h  operations={len(jobs.get(oid, []))}"
+        for k, oid in alias_map.items()
+    ]
     prompt = (
         "You are a manufacturing scheduling expert and your job is to minimize the latency of the orders.\n\n"
         "Rules:\n"
@@ -155,70 +65,26 @@ def build_prompt(jobs: dict, meta: dict) -> tuple:
         "Rank these jobs from FIRST (start earliest) to LAST.\n\n"
         "Output ONLY a JSON array of job numbers in your recommended order.\n"
         "Example: [3, 1, 5, 2, 4]\n"
-        "No explanation — just the JSON array."
+        "No explanation - just the JSON array."
     )
     return prompt, alias_map
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# 3.  PARSE LLM RESPONSE
-# ─────────────────────────────────────────────────────────────────────────────
-
-def parse_llm_order(response: str, alias_map: dict) -> list:
-    """
-    Extract the JSON array from the LLM response and map short IDs back
-    to real order IDs.
-
-    Returns a list of real order IDs in the LLM's suggested order.
-    Any hallucinated / unrecognised numbers are silently skipped.
-    """
-    match = re.search(r"\[[\s\d,]+\]", response)
-    if not match:
-        raise ValueError(
-            f"LLM did not return a JSON array.\nFull response:\n{response}"
-        )
-    short_list = json.loads(match.group())
-    return [alias_map[str(s)] for s in short_list if str(s) in alias_map]
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# 4.  APPLY LLM RANKING → SIMULATE → RETURN SCHEDULE
-# ─────────────────────────────────────────────────────────────────────────────
-
 def run_llm_schedule(jobs, meta, wc_units, wc_workers, worker_info, start_weekday=0):
-    """
-    1. Ask LLM to rank jobs.
-    2. Convert ranking to numeric priorities (1.0 = highest, 9.0 = lowest).
-    3. Run the constraint-aware simulator (PRIO rule) to assign real times.
-    Returns (schedule, completion, llm_meta).
-    """
     ensure_ollama_running()
     prompt, alias_map = build_prompt(jobs, meta)
 
-    if SHOW_PROMPT:
-        sep = "-" * 64
-        print(f"\n{sep}\nPROMPT -> LLM ({MODEL}):\n{sep}\n{prompt}\n{sep}")
+    print(f"\nPROMPT:\n{'-'*60}\n{prompt}\n{'-'*60}")
+    raw = ask_ollama(prompt)
+    print(f"LLM RESPONSE:\n{raw}\n{'-'*60}")
 
-    try:
-        raw = ask_ollama(prompt)
-    except requests.exceptions.ConnectionError:
-        print(
-            f"\n[ERROR] Cannot connect to Ollama.\n"
-            f"  Install from: https://ollama.com/download\n"
-            f"  Then run:     ollama pull {MODEL}\n"
-        )
-        sys.exit(1)
-    except requests.exceptions.Timeout:
-        print(f"\n[ERROR] Ollama timed out after {REQUEST_TIMEOUT} s.")
-        sys.exit(1)
+    match = re.search(r"\[[\s\d,]+\]", raw)
+    if not match:
+        raise ValueError(f"LLM did not return a JSON array.\n{raw}")
+    llm_order = [alias_map[str(s)] for s in json.loads(match.group()) if str(s) in alias_map]
+    print(f"LLM ranked {len(llm_order)} jobs.")
 
-    if SHOW_PROMPT:
-        print(f"LLM RESPONSE:\n{raw}\n{'-'*64}")
-
-    llm_order = parse_llm_order(raw, alias_map)
-    print(f"  LLM ranked {len(llm_order)} jobs.")
-
-    # Convert rank → priority
+    # Convert rank position to priority value (rank 0 -> priority 1.0, last -> 9.0)
     llm_meta = {oid: dict(m) for oid, m in meta.items()}
     n = max(len(llm_order) - 1, 1)
     for rank, oid in enumerate(llm_order):
@@ -235,89 +101,35 @@ def run_llm_schedule(jobs, meta, wc_units, wc_workers, worker_info, start_weekda
     return schedule, completion, llm_meta
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# 5.  PRINT SCHEDULE TABLE
-# ─────────────────────────────────────────────────────────────────────────────
+def print_schedule(schedule, meta, wc_df, base_date):
+    wc_names     = dict(zip(wc_df["Id"], wc_df["Description"]))
+    sorted_sched = sorted(schedule, key=lambda x: x["start"])
 
-def fmt_dt(base_date, hours: float) -> str:
-    dt = base_date + pd.Timedelta(hours=hours)
-    return dt.strftime("%a %b %d %H:%M")
-
-
-def print_schedule_table(schedule, meta, wc_df, base_date):
-    """Print the schedule as a numbered table like the example."""
-    wc_names = dict(zip(wc_df["Id"], wc_df["Description"]))
-    sorted_sched = sorted(schedule, key=lambda x: (x["start"], str(x["machine"])))
-
-    C_NUM = 4;  C_MCH = 14;  C_ORD = 12;  C_OP = 4
-    C_WRK = 8;  C_DT  = 19;  C_PRO =  5;  C_STA = 6
-
-    header = (
-        f"{'#':>{C_NUM}}  {'Machine':<{C_MCH}}  {'Order':<{C_ORD}}  "
-        f"{'Op':>{C_OP}}  {'Worker':<{C_WRK}}  "
-        f"{'Start':<{C_DT}}  {'End':<{C_DT}}  "
-        f"{'Prio':>{C_PRO}}  {'Status'}"
-    )
-    sep = (f"{'---':>{C_NUM}}  {'--------':<{C_MCH}}  {'------':<{C_ORD}}  "
-           f"{'----':>{C_OP}}  {'--------':<{C_WRK}}  "
-           f"{'-------------------':<{C_DT}}  {'-------------------':<{C_DT}}  "
-           f"{'-----':>{C_PRO}}  {'------'}")
+    def fmt(h):
+        return (base_date + pd.Timedelta(hours=h)).strftime("%a %b %d %H:%M")
 
     print()
-    print("=" * len(header))
-    print("  LLM-Generated Schedule")
-    print("=" * len(header))
-    print(header)
-    print(sep)
+    print(f"  {'#':>4}  {'Machine':<14}  {'Order':<12}  {'Op':>4}  {'Worker':<8}  {'Start':<18}  {'End':<18}  {'Prio':>5}  Status")
+    print(f"  {'-'*4}  {'-'*14}  {'-'*12}  {'-'*4}  {'-'*8}  {'-'*18}  {'-'*18}  {'-'*5}  ------")
 
-    for i, entry in enumerate(sorted_sched, start=1):
-        oid    = entry["order_id"]
-        m_name = wc_names.get(entry["machine"], str(entry["machine"]))
-        worker = str(entry["worker"]) if entry["worker"] and not str(entry["worker"]).startswith("__shift_") else "-"
-        prio   = int(meta[oid]["priority"])
-        status = "LATE" if entry["end"] > meta[oid]["due_h"] + 1e-6 else "OK"
-        start  = fmt_dt(base_date, entry["start"])
-        end    = fmt_dt(base_date, entry["end"])
-        oid_str = str(oid)
-        if len(oid_str) > C_ORD:
-            oid_str = "\u2026" + oid_str[-(C_ORD - 1):]
-        print(
-            f"{i:>{C_NUM}}  {m_name:<{C_MCH}}  {oid_str:<{C_ORD}}  "
-            f"{int(entry['op_num']):>{C_OP}}  {worker:<{C_WRK}}  "
-            f"{start:<{C_DT}}  {end:<{C_DT}}  "
-            f"{prio:>{C_PRO}}  {status}"
-        )
+    for i, e in enumerate(sorted_sched, 1):
+        oid    = e["order_id"]
+        status = "LATE" if e["end"] > meta[oid]["due_h"] + 1e-6 else "OK"
+        print(f"  {i:>4}  {wc_names.get(e['machine'], str(e['machine'])):<14}  "
+              f"{str(oid):<12}  {int(e['op_num']):>4}  {str(e['worker'] or '-'):<8}  "
+              f"{fmt(e['start']):<18}  {fmt(e['end']):<18}  "
+              f"{int(meta[oid]['priority']):>5}  {status}")
 
     late = sum(1 for e in sorted_sched if e["end"] > meta[e["order_id"]]["due_h"] + 1e-6)
-    print()
-    print(f"  Total operations : {len(sorted_sched)}")
-    print(f"  Late jobs        : {late}")
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# 6.  MAIN
-# ─────────────────────────────────────────────────────────────────────────────
-
-def main():
-    print("Loading manufacturing data ...")
-    jobs, meta, wc_df, wc_avail, wc_units, wc_workers, worker_info = \
-        dr.load_and_preprocess(absent_workers=set())
-    n_ops = sum(len(v) for v in jobs.values())
-    n_wc  = len({op["machine"] for ops in jobs.values() for op in ops})
-    print(f"  {len(jobs)} orders  |  {n_ops} operations  |  {n_wc} work centres")
-
-    # Base date = today midnight so that wall-clock shift math works correctly.
-    # Workers with shift_start=8.0 become available at t=8.0 = today 08:00.
-    base_date = pd.Timestamp.now().normalize()   # today at 00:00:00
-
-    start_weekday = base_date.weekday()   # 0=Mon, 1=Tue, ...
-    print(f"\nQuerying local LLM ({MODEL}) for job ranking ...")
-    schedule, completion, llm_meta = run_llm_schedule(
-        jobs, meta, wc_units, wc_workers, worker_info, start_weekday
-    )
-
-    print_schedule_table(schedule, llm_meta, wc_df, base_date)
+    print(f"\n  Total operations: {len(sorted_sched)}   Late jobs: {late}")
 
 
 if __name__ == "__main__":
-    main()
+    print("Loading data ...")
+    jobs, meta, wc_df, _, wc_units, wc_workers, worker_info = dr.load_and_preprocess(absent_workers=set())
+    print(f"  {len(jobs)} orders, {sum(len(v) for v in jobs.values())} operations")
+
+    base_date = pd.Timestamp.now().normalize()
+    schedule, _, llm_meta = run_llm_schedule(jobs, meta, wc_units, wc_workers, worker_info,
+                                             start_weekday=base_date.weekday())
+    print_schedule(schedule, llm_meta, wc_df, base_date)
