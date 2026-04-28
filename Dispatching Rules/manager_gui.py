@@ -49,6 +49,31 @@ ORDER_NAMES   = {1001: "Order-A", 1002: "Order-B", 1003: "Order-C"}
 ORDER_COLOURS = {1001: "#4C72B0", 1002: "#DD8452", 1003: "#55A868"}
 
 
+def _make_tooltip(widget, text):
+    """Show a small popup with `text` when hovering over `widget`."""
+    tip = None
+
+    def _show(event):
+        nonlocal tip
+        x = widget.winfo_rootx() + 10
+        y = widget.winfo_rooty() + widget.winfo_height() + 4
+        tip = tk.Toplevel(widget)
+        tip.wm_overrideredirect(True)
+        tip.wm_geometry(f"+{x}+{y}")
+        tk.Label(tip, text=text, justify="left",
+                 background="#ffffe0", relief="solid", borderwidth=1,
+                 font=("Segoe UI", 8), padx=4, pady=3).pack()
+
+    def _hide(event):
+        nonlocal tip
+        if tip:
+            tip.destroy()
+            tip = None
+
+    widget.bind("<Enter>", _show)
+    widget.bind("<Leave>", _hide)
+
+
 # ══════════════════════════════════════════════════════════════════════════════
 class ManagerApp:
     def __init__(self, root: tk.Tk):
@@ -208,25 +233,35 @@ class ManagerApp:
     # ──────────────────────────────────────────────────────────────────────────
     def _load_worker_data(self):
         try:
+            # wide format: id,WC_num1,WC_num2,... (comma-separated)
+            # try comma first, fall back to semicolon
             comp_path = os.path.join(dr.DATA_DIR, "WorkerCompetences.csv")
-            comp_df   = pd.read_csv(comp_path)
-            comp_df["CompetenceLevel"] = comp_df["CompetenceLevel"].fillna(0).astype(int)
+            wide = pd.read_csv(comp_path, sep=",", dtype=str)
+            if len(wide.columns) <= 1:
+                wide = pd.read_csv(comp_path, sep=";", dtype=str)
+            wide = wide.rename(columns={wide.columns[0]: "WorkerId"})
+            wide["WorkerId"] = wide["WorkerId"].astype(str).str.strip()
+
+            wc_cols = [c for c in wide.columns if c != "WorkerId"]
+            comp_df = wide.melt(id_vars="WorkerId", value_vars=wc_cols,
+                                var_name="WCNumber", value_name="CompetenceLevel")
+            comp_df["CompetenceLevel"] = pd.to_numeric(
+                comp_df["CompetenceLevel"], errors="coerce").fillna(0).astype(int)
+            comp_df["WCNumber"] = pd.to_numeric(comp_df["WCNumber"], errors="coerce")
 
             wc_df = pd.read_csv(os.path.join(dr.DATA_DIR, "WorkCenters.tsv"), sep="\t")
-            # WorkerCompetences uses WC *Number* column (100, 120…) → Name
-            num_to_name = dict(zip(wc_df["Number"].astype(int),
-                                   wc_df["Description"]))
+            num_to_name = dict(zip(wc_df["Number"].astype(int), wc_df["Description"]))
 
             comp2 = comp_df[comp_df["CompetenceLevel"] == 2].copy()
-            comp2["wc_name"] = comp2["WorkCenterId"].apply(
-                lambda x: num_to_name.get(int(x), str(x)))
+            comp2["wc_name"] = comp2["WCNumber"].apply(
+                lambda x: num_to_name.get(int(x), str(int(x))) if pd.notna(x) else "?")
 
             # group ALL competence-2 stations per worker (one row per worker)
             # absence is worker-level, not station-level
             from collections import defaultdict
             wc_per_worker = defaultdict(list)
-            for _, row in comp2.sort_values(["WorkerId", "WorkCenterId"]).iterrows():
-                wid = str(int(row["WorkerId"]))
+            for _, row in comp2.sort_values(["WorkerId", "WCNumber"]).iterrows():
+                wid = str(row["WorkerId"])
                 wc_per_worker[wid].append(row["wc_name"])
 
             self.workers       = []
@@ -262,8 +297,8 @@ class ManagerApp:
                      padx=4, pady=6).grid(
                 row=0, column=col, sticky="nsew", padx=1, pady=1)
 
-        _hcell("Worker", 0, 14)
-        _hcell("Work Centre", 1, 10)
+        _hcell("Worker", 0, 10)
+        _hcell("Work Centres", 1, 14)
         for c, (dname, ddate) in enumerate(zip(DAY_NAMES, WEEK)):
             _hcell(f"{dname}\n{ddate.strftime('%b %d')}", c + 2, 7)
 
@@ -276,13 +311,18 @@ class ManagerApp:
                      bg=bg, padx=6, anchor="w").grid(
                 row=row, column=0, sticky="nsew", padx=1, pady=1)
 
-            # WC label: italic + darker colour for multi-station workers
-            wc_fg   = "#1a6a9a" if w.get("multi") else "#555"
-            wc_font = ("Segoe UI", 9, "italic") if w.get("multi") else ("Segoe UI", 9)
-            tk.Label(g, text=w["wc"], font=wc_font,
-                     bg=bg, padx=4, anchor="w",
-                     fg=wc_fg).grid(
-                row=row, column=1, sticky="nsew", padx=1, pady=1)
+            # Show compact count; full list in tooltip on hover
+            stations  = [s.strip() for s in w["wc"].split(",")]
+            n         = len(stations)
+            short     = ", ".join(stations[:3]) + (f" +{n-3} more" if n > 3 else "")
+            wc_fg     = "#1a6a9a" if w.get("multi") else "#555"
+            wc_font   = ("Segoe UI", 9, "italic") if w.get("multi") else ("Segoe UI", 9)
+            lbl = tk.Label(g, text=short, font=wc_font,
+                           bg=bg, padx=4, anchor="w", fg=wc_fg)
+            lbl.grid(row=row, column=1, sticky="nsew", padx=1, pady=1)
+
+            # tooltip: full list shown in a small popup on hover
+            _make_tooltip(lbl, "\n".join(stations))
 
             for c in range(5):
                 tk.Checkbutton(
@@ -294,8 +334,10 @@ class ManagerApp:
                     cursor="hand2",
                 ).grid(row=row, column=c + 2, padx=1, pady=1)
 
-        # stretch all columns evenly
-        for col in range(7):
+        # give the WC column more weight so it uses available space
+        g.columnconfigure(0, weight=1)
+        g.columnconfigure(1, weight=3)
+        for col in range(2, 7):
             g.columnconfigure(col, weight=1)
 
     # ──────────────────────────────────────────────────────────────────────────
