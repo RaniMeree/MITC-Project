@@ -787,15 +787,19 @@ if __name__ == "__main__":
     print(f"  {len(jobs)} orders with "
           f"{sum(len(v) for v in jobs.values())} operations loaded")
 
+    # Add synthetic shift workers for machines with no qualified workers,
+    # so they respect the 08:00-16:00 shift window instead of running 24/7.
+    all_machines = {op["machine"] for ops in jobs.values() for op in ops}
+    for m in all_machines:
+        if m not in wc_workers or not wc_workers[m]:
+            syn_id = f"__shift_{m}__"
+            wc_workers[m] = [syn_id]
+            worker_info[syn_id] = {"shift_start": 8.0, "shift_end": 16.0}
+
     results, best_rule = compare_all_rules(jobs, meta, wc_units, wc_workers, worker_info)
 
     # ── print the actual schedule for the best rule ───────────────────────────
-
-    orders_df_tmp = pd.read_csv(
-        os.path.join(DATA_DIR, "ManufacturingOrders.tsv"), sep="\t"
-    )
-    orders_df_tmp["StartDate"] = pd.to_datetime(orders_df_tmp["StartDate"], errors="coerce")
-    base_date = orders_df_tmp["StartDate"].min()
+    base_date = pd.Timestamp.now().normalize()
 
     print_schedule(
         results[best_rule]["schedule"],
