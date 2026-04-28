@@ -189,8 +189,8 @@ def run_llm_schedule(jobs, meta, wc_units, wc_workers, worker_info):
     prompt, alias_map = build_prompt(jobs, meta)
 
     if SHOW_PROMPT:
-        sep = "─" * 64
-        print(f"\n{sep}\nPROMPT → LLM ({MODEL}):\n{sep}\n{prompt}\n{sep}")
+        sep = "-" * 64
+        print(f"\n{sep}\nPROMPT -> LLM ({MODEL}):\n{sep}\n{prompt}\n{sep}")
 
     try:
         raw = ask_ollama(prompt)
@@ -206,7 +206,7 @@ def run_llm_schedule(jobs, meta, wc_units, wc_workers, worker_info):
         sys.exit(1)
 
     if SHOW_PROMPT:
-        print(f"LLM RESPONSE:\n{raw}\n{'─'*64}")
+        print(f"LLM RESPONSE:\n{raw}\n{'-'*64}")
 
     llm_order = parse_llm_order(raw, alias_map)
     print(f"  LLM ranked {len(llm_order)} jobs.")
@@ -298,12 +298,8 @@ def main():
     n_wc  = len({op["machine"] for ops in jobs.values() for op in ops})
     print(f"  {len(jobs)} orders  |  {n_ops} operations  |  {n_wc} work centres")
 
-    # Base date for readable datetime output
-    orders_tmp = pd.read_csv(
-        os.path.join(DATA_DIR, "ManufacturingOrders.tsv"), sep="\t"
-    )
-    orders_tmp["StartDate"] = pd.to_datetime(orders_tmp["StartDate"], errors="coerce")
-    base_date = orders_tmp["StartDate"].min()
+    # Base date = today at 08:00 (first job is always released this morning)
+    base_date = pd.Timestamp.now().normalize() + pd.Timedelta(hours=8)
 
     print(f"\nQuerying local LLM ({MODEL}) for job ranking ...")
     schedule, completion, llm_meta = run_llm_schedule(
