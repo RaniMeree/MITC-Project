@@ -220,23 +220,9 @@ def run_llm_schedule(jobs, meta, wc_units, wc_workers, worker_info, start_weekda
         if oid not in set(llm_order):
             llm_meta[oid]["priority"] = 9.0
 
-    # ── Enforce 08:00-16:00 on ALL machines ─────────────────────────────────
-    # Machines that have no qualified workers in wc_workers run 24/7 by default.
-    # Add a unique synthetic "shift worker" per such machine so the simulator
-    # enforces the 08:00-16:00 window for them too.
-    aug_wc_workers  = {m: list(wl) for m, wl in wc_workers.items()}
-    aug_worker_info = {w: dict(i)  for w, i  in worker_info.items()}
-
-    all_machines = {op["machine"] for ops in jobs.values() for op in ops}
-    for m in all_machines:
-        if m not in aug_wc_workers:
-            synthetic = f"__shift_{m}__"
-            aug_wc_workers[m]  = [synthetic]
-            aug_worker_info[synthetic] = {"shift_start": 8.0, "shift_end": 16.0}
-
     dr.VERBOSE = False
     schedule, _, completion = dr.simulate(
-        jobs, llm_meta, "PRIO", wc_units, aug_wc_workers, aug_worker_info,
+        jobs, llm_meta, "PRIO", wc_units, wc_workers, worker_info,
         start_weekday=start_weekday
     )
     return schedule, completion, llm_meta

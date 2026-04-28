@@ -550,6 +550,8 @@ def simulate(jobs, meta, rule, wc_units=None, wc_workers=None, worker_info=None,
             eligible = wc_workers.get(m, [])
             if m in wc_workers and not eligible:
                 continue
+            earliest_ready = min(e["ready_at"] for e in q)
+            slot_idx = min(range(len(mach_free[m])), key=lambda i: mach_free[m][i])
             if eligible:
                 worker_avail = min(
                     next_available_time(
@@ -562,9 +564,9 @@ def simulate(jobs, meta, rule, wc_units=None, wc_workers=None, worker_info=None,
                     for w in eligible
                 )
             else:
-                worker_avail = 0.0
-            earliest_ready = min(e["ready_at"] for e in q)
-            slot_idx = min(range(len(mach_free[m])), key=lambda i: mach_free[m][i])
+                # No comp-2 workers — enforce 08:00-16:00 shift, wait until shift starts
+                t_cand = max(mach_free[m][slot_idx], earliest_ready)
+                worker_avail = next_available_time(t_cand, 8.0, 16.0, set(), start_weekday)
             t = max(mach_free[m][slot_idx], earliest_ready, worker_avail)
             if t < best_time:
                 best_time = t
@@ -599,28 +601,30 @@ def simulate(jobs, meta, rule, wc_units=None, wc_workers=None, worker_info=None,
                 return next_available_time(free_at, ss, se, abs_days, start_weekday)
             best_worker       = min(eligible, key=worker_earliest)
             worker_start_free = worker_earliest(best_worker)
-        else:
-            best_worker = None
-            worker_start_free = 0.0
-
-        # ── Compute start/end times ──────────────────────────────────────────
-        tentative = max(chosen["ready_at"], mach_free[best_m][best_slot])
-        if best_worker:
             info     = worker_info.get(best_worker, {}) if worker_info else {}
             ss       = info.get("shift_start", 0.0)
             se       = info.get("shift_end",   24.0)
             abs_days = day_absences.get(best_worker, set()) if day_absences else set()
-            tentative = next_available_time(tentative, ss, se, abs_days, start_weekday)
+        else:
+            best_worker = None
+            ss, se, abs_days = 8.0, 16.0, set()
+            worker_start_free = next_available_time(
+                max(chosen["ready_at"], mach_free[best_m][best_slot]),
+                ss, se, abs_days, start_weekday
+            )
+
+        # ── Compute start/end times ──────────────────────────────────────────
+        tentative = max(chosen["ready_at"], mach_free[best_m][best_slot])
+        tentative = next_available_time(tentative, ss, se, abs_days, start_weekday)
         start = max(tentative, worker_start_free)
-        # Defer to next shift if the operation would overflow the current shift-end
-        # (only applies to operations short enough to fit within one full shift).
-        if best_worker and worker_info:
-            shift_len = se - ss
-            if 0 < op["duration"] <= shift_len:
-                day_num_s   = int(start // 24)
-                shift_end_s = day_num_s * 24 + se
-                if start + op["duration"] > shift_end_s + 1e-6:
-                    start = next_available_time(shift_end_s + 0.001, ss, se, abs_days, start_weekday)
+        # 1-hour grace: defer to next shift only if op ends more than 1 h past shift-end.
+        # e.g. an op finishing at 16:45 is allowed; one finishing at 17:01 is deferred.
+        shift_len = se - ss
+        if 0 < op["duration"] <= shift_len:
+            day_num_s   = int(start // 24)
+            shift_end_s = day_num_s * 24 + se
+            if start + op["duration"] > shift_end_s + 1.0 + 1e-6:
+                start = next_available_time(shift_end_s + 0.001, ss, se, abs_days, start_weekday)
         end = start + op["duration"]
 
         if VERBOSE:
@@ -796,15 +800,6 @@ if __name__ == "__main__":
     jobs, meta, wc_df, wc_avail, wc_units, wc_workers, worker_info = load_and_preprocess()
     print(f"  {len(jobs)} orders with "
           f"{sum(len(v) for v in jobs.values())} operations loaded")
-
-    # Add synthetic shift workers for machines with no qualified workers,
-    # so they respect the 08:00-16:00 shift window instead of running 24/7.
-    all_machines = {op["machine"] for ops in jobs.values() for op in ops}
-    for m in all_machines:
-        if m not in wc_workers or not wc_workers[m]:
-            syn_id = f"__shift_{m}__"
-            wc_workers[m] = [syn_id]
-            worker_info[syn_id] = {"shift_start": 8.0, "shift_end": 16.0}
 
     results, best_rule = compare_all_rules(jobs, meta, wc_units, wc_workers, worker_info)
 

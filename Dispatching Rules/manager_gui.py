@@ -385,15 +385,6 @@ class ManagerApp:
             self.last_meta     = meta
             self.last_wc_names = wc_names
 
-            # Add synthetic shift workers for machines with no qualified workers,
-            # so they respect 08:00-16:00 instead of running 24/7.
-            all_machines = {op["machine"] for ops in jobs.values() for op in ops}
-            for m in all_machines:
-                if m not in wc_workers or not wc_workers[m]:
-                    syn_id = f"__shift_{m}__"
-                    wc_workers[m] = [syn_id]
-                    worker_info[syn_id] = {"shift_start": 8.0, "shift_end": 16.0}
-
             # save for GA
             self._last_jobs        = jobs
             self._last_wc_units    = wc_units
@@ -465,8 +456,7 @@ class ManagerApp:
                     late   = "LATE" if entry["end"] > meta[oid]["due_h"] else "OK"
                     mname  = wc_names.get(m_id, str(m_id))
                     olabel = ORDER_NAMES.get(oid, str(oid))
-                    raw_worker = entry.get("worker") or "-"
-                    worker = "-" if str(raw_worker).startswith("__shift_") else str(raw_worker)
+                    worker = str(entry.get("worker") or "-")
                     buf.write(
                         f"  {idx:>3}  {mname:<8}  {olabel:<10}  "
                         f"{int(entry['op_num']):>4}  {worker:<8}  "
