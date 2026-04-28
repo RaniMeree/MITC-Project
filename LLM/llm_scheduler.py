@@ -25,6 +25,10 @@ import os
 import re
 import json
 
+import subprocess
+import time
+import shutil
+
 import requests
 import numpy as np
 
@@ -40,6 +44,11 @@ OLLAMA_URL    = "http://localhost:11434/api/generate"
 MODEL         = "llama3"   # change to whichever model you have pulled, e.g. "mistral"
 REQUEST_TIMEOUT = 180      # seconds to wait for a response
 
+# Common Windows install path for Ollama when it is not on PATH
+_OLLAMA_FALLBACK = os.path.join(
+    os.environ.get("LOCALAPPDATA", ""), "Programs", "Ollama", "ollama.exe"
+)
+
 # How many jobs to include in a single prompt.
 # Larger = better decisions but slower / may exceed context window.
 MAX_JOBS_PER_PROMPT = 30
@@ -50,6 +59,44 @@ SHOW_PROMPT   = True       # print the prompt and raw LLM reply
 # ─────────────────────────────────────────────────────────────────────────────
 # 1.  OLLAMA HELPER
 # ─────────────────────────────────────────────────────────────────────────────
+
+def _ollama_exe() -> str:
+    """Return path to ollama executable (PATH or Windows fallback)."""
+    found = shutil.which("ollama")
+    if found:
+        return found
+    if os.path.isfile(_OLLAMA_FALLBACK):
+        return _OLLAMA_FALLBACK
+    return "ollama"   # let it fail with a clear message
+
+
+def ensure_ollama_running():
+    """Start Ollama server if it is not already reachable."""
+    try:
+        requests.get("http://localhost:11434", timeout=3)
+        return   # already up
+    except Exception:
+        pass
+
+    exe = _ollama_exe()
+    print(f"  Starting Ollama ({exe}) ...")
+    subprocess.Popen(
+        [exe, "serve"],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+    )
+    # wait up to 10 s for it to become ready
+    for _ in range(20):
+        time.sleep(0.5)
+        try:
+            requests.get("http://localhost:11434", timeout=2)
+            print("  Ollama is ready.")
+            return
+        except Exception:
+            pass
+    print("  Warning: Ollama may not have started in time — trying anyway.")
+
 
 def ask_ollama(prompt: str, model: str = MODEL) -> str:
     """Send a prompt to Ollama and return the text response."""
@@ -159,12 +206,13 @@ def run_llm_scheduler(
 
     # ── Query the LLM ────────────────────────────────────────────────────────
     try:
+        ensure_ollama_running()
         raw_response = ask_ollama(prompt)
     except requests.exceptions.ConnectionError:
         print(
             "\n[ERROR] Cannot connect to Ollama.\n"
-            f"  Make sure Ollama is running:   ollama serve\n"
-            f"  And the model is available:    ollama pull {MODEL}\n"
+            f"  Make sure Ollama is installed: https://ollama.com/download\n"
+            f"  Then pull the model:           ollama pull {MODEL}\n"
         )
         sys.exit(1)
     except requests.exceptions.Timeout:
